@@ -1,0 +1,371 @@
+{
+    "Penteli_Northern": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 38.09 and Lon 23.89",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Rapentosa",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "38.093",
+            "lon": "23.904",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 15,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1026,
+            "precip": 0,
+            "humidity": 59,
+            "cloudcover": 25,
+            "feelslike": 15,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Penteli_Central": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 38.07 and Lon 23.89",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Rapentosa",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "38.093",
+            "lon": "23.904",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 15,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1026,
+            "precip": 0,
+            "humidity": 59,
+            "cloudcover": 25,
+            "feelslike": 15,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Penteli_Southern": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 38.04 and Lon 23.89",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Anthousa",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "38.025",
+            "lon": "23.876",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 15,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1026,
+            "precip": 0,
+            "humidity": 59,
+            "cloudcover": 25,
+            "feelslike": 15,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Parnitha_Northern": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 38.17 and Lon 23.74",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Parnis",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "38.157",
+            "lon": "23.740",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 15,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1026,
+            "precip": 0,
+            "humidity": 59,
+            "cloudcover": 25,
+            "feelslike": 15,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Parnitha_Central": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 38.14 and Lon 23.74",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Parnis",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "38.157",
+            "lon": "23.740",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 15,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1026,
+            "precip": 0,
+            "humidity": 59,
+            "cloudcover": 25,
+            "feelslike": 15,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Parnitha_Southern": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 38.11 and Lon 23.74",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Acharnes",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "38.083",
+            "lon": "23.733",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 15,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1026,
+            "precip": 0,
+            "humidity": 59,
+            "cloudcover": 25,
+            "feelslike": 15,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Hymettus_Northern": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 37.96 and Lon 23.81",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Kaisariani",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "37.967",
+            "lon": "23.800",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 16,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1025,
+            "precip": 0,
+            "humidity": 63,
+            "cloudcover": 25,
+            "feelslike": 16,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Hymettus_Central": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 37.93 and Lon 23.81",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Kaisariani",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "37.967",
+            "lon": "23.800",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 16,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1025,
+            "precip": 0,
+            "humidity": 63,
+            "cloudcover": 25,
+            "feelslike": 16,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    },
+    "Hymettus_Southern": {
+        "request": {
+            "type": "LatLon",
+            "query": "Lat 37.90 and Lon 23.81",
+            "language": "en",
+            "unit": "m"
+        },
+        "location": {
+            "name": "Koropi",
+            "country": "Greece",
+            "region": "Attica",
+            "lat": "37.899",
+            "lon": "23.872",
+            "timezone_id": "Europe/Athens",
+            "localtime": "2024-11-03 21:21",
+            "localtime_epoch": 1730668860,
+            "utc_offset": "2.0"
+        },
+        "current": {
+            "observation_time": "07:21 PM",
+            "temperature": 16,
+            "weather_code": 116,
+            "weather_icons": [
+                "https://cdn.worldweatheronline.com/images/wsymbols01_png_64/wsymbol_0004_black_low_cloud.png"
+            ],
+            "weather_descriptions": [
+                "Partly cloudy"
+            ],
+            "wind_speed": 23,
+            "wind_degree": 16,
+            "wind_dir": "NNE",
+            "pressure": 1025,
+            "precip": 0,
+            "humidity": 63,
+            "cloudcover": 25,
+            "feelslike": 16,
+            "uv_index": 0,
+            "visibility": 10,
+            "is_day": "no"
+        }
+    }
+}
