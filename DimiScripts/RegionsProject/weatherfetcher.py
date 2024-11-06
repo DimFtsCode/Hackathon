@@ -23,6 +23,15 @@ class WeatherFetcher:
         :param longitude: Το γεωγραφικό μήκος της περιοχής.
         :param region_name: Το όνομα της περιοχής (χρησιμοποιείται ως κλειδί στο dictionary).
         """
+        # Εκτύπωση συντεταγμένων και επιβεβαίωση από τον χρήστη
+        # print(f"\nLatitude: {latitude}, Longitude: {longitude}")
+        # user_input = input(f"Do you want to fetch weather data for {region_name}? (yes/no): ").strip().lower()
+
+        # # Αν ο χρήστης απαντήσει όχι, παραλείπουμε το αίτημα
+        # if user_input != "yes":
+        #     print(f"Skipping weather data fetch for {region_name}.")
+        #     return
+
         url = f"{self.base_url}?access_key={self.api_key}&query={latitude},{longitude}"
         
         try:

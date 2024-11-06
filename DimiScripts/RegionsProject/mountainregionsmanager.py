@@ -2,6 +2,7 @@ from penteli import Penteli
 from parnitha import Parnitha
 from hymettus import Hymettus
 from weatherfetcher import WeatherFetcher
+import time
 
 class MountainRegionsManager:
     def __init__(self, api_key):
@@ -47,4 +48,6 @@ class MountainRegionsManager:
         for mountain_name, mountain in self.mountains.items():
             for region in mountain.regions:
                 latitude, longitude = region.center
+                print(f"latitude = {latitude} , longitute = {longitude}")
                 self.weather_fetcher.fetch_weather(latitude, longitude, f"{mountain_name}_{region.name}")
+                time.sleep(1)  # Καθυστέρηση 1 δευτερόλεπτο μετά από κάθε αίτημα
