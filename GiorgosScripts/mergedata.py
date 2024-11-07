@@ -1,8 +1,11 @@
-import pandas as pd 
+import pandas as pd
 from math import radians, sin, cos, sqrt, atan2
 
+# Ορισμός αρχείων δεδομένων και συντεταγμένων περιοχής
 weather_file = '/Users/giorgosziakas/Desktop/Anthousa_weather_data.csv'
 fire_file = '/Users/giorgosziakas/Desktop/3.csv'
+region_center = (38.025, 23.876)  # Συντεταγμένες για την Ανθούσα
+fixed_radius_km = 1.40  # Σταθερή ακτίνα για την Ανθούσα
 
 # Συναρτήσεις για φόρτωση δεδομένων και υπολογισμό απόστασης
 def load_data(weather_file, fire_file):
@@ -22,7 +25,6 @@ def haversine_distance(coord1, coord2):
     χρησιμοποιώντας τον τύπο Haversine.
     """
     R = 6371.0  # Ακτίνα της γης σε χιλιόμετρα
-
     lat1, lon1 = radians(coord1[0]), radians(coord1[1])
     lat2, lon2 = radians(coord2[0]), radians(coord2[1])
 
@@ -35,57 +37,42 @@ def haversine_distance(coord1, coord2):
     return R * c
 
 
-# Συνάρτηση για προσθήκη στήλης με βάση δυναμική ακτίνα
-def add_fire_column_dynamic_radius(weather_data, fire_data, region_center, fixed_min_radius_km=5):
+# Συνάρτηση για προσθήκη στήλης με σταθερή ακτίνα
+def add_fire_column_fixed_radius(weather_data, fire_data, region_center, fixed_radius_km):
     """
     Προσθέτει μια στήλη στα δεδομένα καιρού που δείχνει αν υπήρχε κοντινή φωτιά,
-    με προσαρμογή της ακτίνας δυναμικά για κάθε ημέρα.
+    χρησιμοποιώντας σταθερή ακτίνα.
     """
-    
-    # Δημιουργία νέας στήλης για παρουσία φωτιάς (0: Χωρίς φωτιά, 1: Παρουσία φωτιάς)
-    weather_data['fire'] = 0
-    
+    weather_data['fire'] = 0  # Δημιουργία νέας στήλης για παρουσία φωτιάς
+
     # Εύρεση κοινών ημερομηνιών μεταξύ δεδομένων καιρού και φωτιάς
     region_dates = set(weather_data['date'].unique()).intersection(fire_data['acq_date'].unique())
 
-    # Για κάθε κοινή ημερομηνία, υπολογισμός δυναμικής ακτίνας και έλεγχος για κοντινή φωτιά
+    # Για κάθε κοινή ημερομηνία, έλεγχος για φωτιές εντός της σταθερής ακτίνας
     for date in region_dates:
         fires_on_date = fire_data[fire_data['acq_date'] == date]
-        
-        # Υπολογισμός της ελάχιστης απόστασης για φωτιές την συγκεκριμένη ημέρα
-        min_distance = float('inf')
+
         for _, fire_row in fires_on_date.iterrows():
             fire_coords = fire_row['latitude'], fire_row['longitude']
             distance = haversine_distance(region_center, fire_coords)
-            if distance < min_distance:
-                min_distance = distance
-                
-        # Ορισμός δυναμικής ακτίνας: ελάχιστη σταθερή ακτίνα + το μισό της ελάχιστης απόστασης
-        dynamic_radius_km = fixed_min_radius_km + (min_distance / 2 if min_distance < float('inf') else 0)
-        
-        # Έλεγχος αν κάποια φωτιά βρίσκεται εντός της δυναμικής ακτίνας
-        for _, fire_row in fires_on_date.iterrows():
-            fire_coords = (fire_row['latitude'], fire_row['longitude'])
-            distance = haversine_distance(region_center, fire_coords)
-            
-            if distance <= dynamic_radius_km:
-                # Αν υπάρχει φωτιά εντός της δυναμικής ακτίνας, καταχώρηση '1' για την ημέρα
+            if distance <= fixed_radius_km:
+                # Αν υπάρχει φωτιά εντός της σταθερής ακτίνας, καταχώρηση '1' για την ημέρα
                 weather_data.loc[weather_data['date'] == date, 'fire'] = 1
-                break # Διακοπή του ελέγχου αν βρεθεί κοντινή φωτιά
+                break  # Σταματάμε τον έλεγχο αν βρεθεί κοντινή φωτιά
             
     return weather_data
 
 
-# Διαδικασία για μία περιοχή με δυναμική ακτίνα
-def process_single_region_dynamic_radius(weather_file, fire_file, region_center):
+# Διαδικασία για μία περιοχή με σταθερή ακτίνα
+def process_single_region_fixed_radius(weather_file, fire_file, region_center, fixed_radius_km):
     """
-    Εφαρμογή του αλγορίθμου με δυναμική ακτίνα για την καθορισμένη περιοχή.
+    Εφαρμογή του αλγορίθμου με σταθερή ακτίνα για την καθορισμένη περιοχή.
     """
     weather_data, fire_data = load_data(weather_file, fire_file)
-    
-    # Εφαρμογή αλγορίθμου με δυναμική ακτίνα για προσθήκη νέας στήλης
-    enriched_weather_data = add_fire_column_dynamic_radius(weather_data, fire_data, region_center)
-    
+
+    # Εφαρμογή αλγορίθμου με σταθερή ακτίνα για προσθήκη νέας στήλης
+    enriched_weather_data = add_fire_column_fixed_radius(weather_data, fire_data, region_center, fixed_radius_km)
+
     return enriched_weather_data
 
 
@@ -109,9 +96,8 @@ total_fire_days, total_fires = fire_statistics(fire_data, 2019, 2023)
 print("Συνολικές ημέρες φωτιάς:", total_fire_days)
 print("Συνολικές φωτιές από το 2019 έως το 2023:", total_fires)
 
-# Εκτέλεση της ανάλυσης για την περιοχή της Ανθούσας
-region_center = (38.025, 23.876)  # Συντεταγμένες για την Ανθούσα
-enriched_data = process_single_region_dynamic_radius(weather_file, fire_file, region_center)
+# Εκτέλεση της ανάλυσης για την περιοχή της Ανθούσας με σταθερή ακτίνα
+enriched_data = process_single_region_fixed_radius(weather_file, fire_file, region_center, fixed_radius_km)
 
 # Αποθήκευση του εμπλουτισμένου συνόλου δεδομένων στην επιφάνεια εργασίας
-enriched_data.to_csv('/Users/giorgosziakas/Desktop/enriched_weather_data.csv', index=False)
+enriched_data.to_csv('/Users/giorgosziakas/Desktop/Anthousa_enriched_weather_data.csv', index=False)
