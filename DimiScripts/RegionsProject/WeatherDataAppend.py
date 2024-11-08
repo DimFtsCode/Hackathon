@@ -1,5 +1,6 @@
 from WeatherDataFetcher import WeatherDataFetcher
 from datetime import datetime, timedelta
+import os
 
 
 class WeatherDataManager:
@@ -50,22 +51,19 @@ class WeatherDataManager:
 
         return date_ranges
 
-    def fetch_annual_data(self, years=10):
-        current_year = datetime.now().year
+    def fetch_and_append_data(self, start_date, end_date):
         for name, (latitude, longitude) in self.points:
             output_file = f"{name}_weather_data.csv"
-            for year in range(current_year - years, current_year):
-                start_date = f"{year}-01-01"
-                end_date = f"{year}-12-31"
-
-                # Σπάμε το εύρος ημερομηνιών σε τμήματα των 60 ημερών
-                date_ranges = self.split_date_range(start_date, end_date)
-                for period_start, period_end in date_ranges:
-                    print(f"Fetching data for {name} from {period_start} to {period_end}")
-                    fetcher = WeatherDataFetcher(self.api_key, latitude, longitude, period_start, period_end)
-                    fetcher.fetch_and_save(output_file)
+            date_ranges = self.split_date_range(start_date, end_date)
+            for period_start, period_end in date_ranges:
+                print(f"Fetching data for {name} from {period_start} to {period_end}")
+                fetcher = WeatherDataFetcher(self.api_key, latitude, longitude, period_start, period_end)
+                fetcher.fetch_and_save(output_file)
 
 
+# Εισάγετε το API key σας εδώ
 api_key = "23ecd879f082445734dc2066bf821571"
 manager = WeatherDataManager(api_key)
-manager.fetch_annual_data(years=10)
+
+# Προσθήκη δεδομένων από 2024-01-01 έως 2024-10-31
+manager.fetch_and_append_data("2024-01-01", "2024-10-31")
