@@ -42,3 +42,25 @@ else:
 print("Last 5 documents from 'Hackathon' collection:")
 for doc in collection.find().sort('_id', -1).limit(5):
     print(doc)
+    
+# Ελέγχουμε τη σύνδεση με τη MongoDB και ανακτούμε τα δεδομένα από τη συλλογή "Hackathon"
+db = client["Weather"]  # Πρόσβαση στη βάση δεδομένων Weather
+hackathon_collection = db["Hackathon"]  # Πρόσβαση στη συλλογή Hackathon
+
+# Ανάκτηση όλων των δεδομένων από τη συλλογή
+data = hackathon_collection.find()
+
+# Εκτύπωση των δεδομένων
+for document in data:
+    print(document)
+    
+# Προσδιορισμός των βασικών πεδίων των δεδομένων καιρού
+# Ορισμός βασικών πεδίων που πρέπει να υπάρχουν στα έγγραφα καιρού
+weather_fields = ["name", "latitude", "longitude", "date", "time", "temperature", "wind_speed", "wind_dir", "humidity", "visibility"]
+
+# Διαγραφή εγγράφων που δεν περιέχουν όλα τα βασικά πεδία δεδομένων καιρού
+hackathon_collection.delete_many({
+    "$or": [{field: {"$exists": False}} for field in weather_fields]
+})
+
+print("Non-weather data documents have been removed from the collection.")
