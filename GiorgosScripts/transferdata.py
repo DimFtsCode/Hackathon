@@ -54,13 +54,3 @@ data = hackathon_collection.find()
 for document in data:
     print(document)
     
-# Προσδιορισμός των βασικών πεδίων των δεδομένων καιρού
-# Ορισμός βασικών πεδίων που πρέπει να υπάρχουν στα έγγραφα καιρού
-weather_fields = ["name", "latitude", "longitude", "date", "time", "temperature", "wind_speed", "wind_dir", "humidity", "visibility"]
-
-# Διαγραφή εγγράφων που δεν περιέχουν όλα τα βασικά πεδία δεδομένων καιρού
-hackathon_collection.delete_many({
-    "$or": [{field: {"$exists": False}} for field in weather_fields]
-})
-
-print("Non-weather data documents have been removed from the collection.")
