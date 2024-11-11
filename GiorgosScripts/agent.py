@@ -3,7 +3,7 @@ from sentence_transformers import SentenceTransformer
 from openai import OpenAI
 import re
 
-client=OpenAI(api_key="sk-3BK6RP81kQjI5KSGwLQd4izdAR_FNA7Vh1U5fCp7blT3BlbkFJbTmubk7arC_iQY4wdIAi1OSCb8iQGDap_WSqS2UiIA") 
+client=OpenAI(api_key="....") 
 mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
 mongo_client = MongoClient(mongo_uri)
 
