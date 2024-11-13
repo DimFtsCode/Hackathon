@@ -1,16 +1,11 @@
 import xgboost as xgb
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
-import numpy as np
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import mean_squared_error, accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import os
 
-
-
 # Διαδρομή του αρχείου δεδομένων
-data_path = os.path.join(".", "GiorgosScripts", "Final_datasets_with_fire", "combined_with_cyclic_features.csv")
+data_path = os.path.join(".", "Dimiscripts", "Datasets", "train_data.csv")
 
 # Φόρτωση δεδομένων
 df = pd.read_csv(data_path)
@@ -59,18 +54,22 @@ cv_results = xgb.cv(
 best_num_round = cv_results['test-logloss-mean'].idxmin()
 bst = xgb.train(params, dtrain, best_num_round)
 
+# Αποθήκευση του μοντέλου σε αρχείο
+model_path = os.path.join(".", "Dimiscripts", "Models", "xgboost_fire_model.json")
+bst.save_model(model_path)
+print(f"Model saved to {model_path}")
+
 # Πρόβλεψη και υπολογισμός ακρίβειας
 preds = bst.predict(dtest)
-print(preds)
 predictions = [1 if p > 0.8 else 0 for p in preds]  # Μετατροπή σε κατηγορίες 0/1
 
 # Υπολογισμός μέτρων απόδοσης
 accuracy = accuracy_score(y_test, predictions)
-print("Accuracy:", accuracy)
 precision = precision_score(y_test, predictions)
 recall = recall_score(y_test, predictions)
 f1 = f1_score(y_test, predictions)
 
+print("Accuracy:", accuracy)
 print("Precision:", precision)
 print("Recall:", recall)
 print("F1 Score:", f1)

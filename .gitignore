@@ -1,2 +1,13 @@
+# Αγνόηση αρχείων και φακέλων του εικονικού περιβάλλοντος
+.venv/
 .venv/Scripts/python.exe
 .venv/pyenv.cfg
+
+# Αγνόηση του φακέλου Datasets μέσα στον Dimiscripts
+Dimiscripts/Datasets/
+
+# Αγνόηση του φακέλου Final_datasets_with_fire μέσα στον GiorgosScripts
+GiorgosScripts/Final_datasets_with_fire/
+
+# Αγνόηση του φακέλου node_modules στο FrontEnd
+Application/FrontEnd/hackinterface/node_modules
