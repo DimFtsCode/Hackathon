@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 from bson import ObjectId
 from typing import List, Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 # Αρχικοποίηση του FastAPI app
 app = FastAPI()
@@ -14,28 +15,48 @@ db = mongo_client["Weather"]
 weather_collection = db["Hackathon"]
 
 print("Connected to MongoDB successfully.")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Επιτρέπει αιτήσεις μόνο από το React dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Μοντέλο δεδομένων για εισαγωγή και ανάκτηση πληροφοριών
 class WeatherData(BaseModel):
-    location: str
-    temperature: float
-    humidity: float
-    description: Optional[str] = None
+    id: Optional[str]
+    name: str
+    latitude: float
+    longitude: float
+    date: str
+    time: int
+    temperature: int
+    wind_speed: int
+    wind_dir: str
+    humidity: int
+    visibility: int
 
 # Βοηθητική συνάρτηση για μετατροπή δεδομένων MongoDB σε JSON format
 def weather_helper(weather) -> dict:
     return {
         "id": str(weather["_id"]),
-        "location": weather["location"],
-        "temperature": weather["temperature"],
-        "humidity": weather["humidity"],
-        "description": weather.get("description"),
+        "name": weather.get("name", "Unknown"),
+        "latitude": float(weather.get("latitude", 0)),
+        "longitude": float(weather.get("longitude", 0)),
+        "date": weather.get("date", "Unknown"),
+        "time": int(weather.get("time", 0)),
+        "temperature": int(weather.get("temperature", 0)),
+        "wind_speed": int(weather.get("wind_speed", 0)),
+        "wind_dir": weather.get("wind_dir", "Unknown"),
+        "humidity": int(weather.get("humidity", 0)),
+        "visibility": int(weather.get("visibility", 0))
     }
 
 # Endpoint για δημιουργία νέας εγγραφής και εισαγωγή της στη βάση
 @app.post("/weather/", response_model=WeatherData)
 def create_weather_data(weather: WeatherData):
     weather_dict = weather.dict()
+    weather_dict.pop("id", None)  # Remove 'id' if it exists, as MongoDB will auto-generate it
     new_weather = weather_collection.insert_one(weather_dict)
     created_weather = weather_collection.find_one({"_id": new_weather.inserted_id})
     return weather_helper(created_weather)
@@ -59,8 +80,10 @@ def get_weather_data(weather_id: str):
 # Endpoint για ενημέρωση εγγραφής βάσει ID
 @app.put("/weather/{weather_id}", response_model=WeatherData)
 def update_weather_data(weather_id: str, weather: WeatherData):
+    weather_dict = weather.dict()
+    weather_dict.pop("id", None)  # Remove 'id' if it exists
     updated_weather = weather_collection.find_one_and_update(
-        {"_id": ObjectId(weather_id)}, {"$set": weather.dict()}, return_document=True
+        {"_id": ObjectId(weather_id)}, {"$set": weather_dict}, return_document=True
     )
     if updated_weather:
         return weather_helper(updated_weather)
@@ -73,3 +96,11 @@ def delete_weather_data(weather_id: str):
     if delete_result.deleted_count == 1:
         return {"message": "Weather data deleted successfully"}
     raise HTTPException(status_code=404, detail="Weather data not found")
+
+# Endpoint για εμφάνιση της πρώτης εγγραφής στο dataset
+@app.get("/weather/first", response_model=WeatherData)
+def get_first_weather_data():
+    first_weather = weather_collection.find_one()  # Query χωρίς φίλτρο για να πάρουμε την πρώτη εγγραφή
+    if first_weather:
+        return weather_helper(first_weather)
+    raise HTTPException(status_code=404, detail="No weather data found")

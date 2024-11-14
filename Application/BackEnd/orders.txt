@@ -1,6 +1,13 @@
+Install:
 python -m venv fastapi-env
 fastapi-env\Scripts\activate
 pip install fastapi uvicorn
 uvicorn main:app --reload
-pip install fastapi[all]
+pip install fastapi[all] 
 python.exe -m pip install --upgrade pip
+
+Open / ReOpen:
+fastapi-env\Scripts\activate
+uvicorn main:app --reload
+
+Run EndPoints: http://127.0.0.1:8000/weather/6730beff59469079dacf3c97
