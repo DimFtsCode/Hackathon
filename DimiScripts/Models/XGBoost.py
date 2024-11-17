@@ -4,76 +4,94 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import os
 
-# Διαδρομή του αρχείου δεδομένων
-data_path = os.path.join(".", "Dimiscripts", "Datasets", "train_data.csv")
+def load_data(data_path):
+    """Φορτώνει τα δεδομένα από το καθορισμένο αρχείο και προετοιμάζει τα χαρακτηριστικά και τις ετικέτες."""
+    df = pd.read_csv(data_path)
+    df = df.drop(columns=['date', 'time'])  # Αφαίρεση των μη αναγκαίων στηλών
+    X = df.drop(columns=['fire'])
+    y = df['fire']
+    return X, y
 
-# Φόρτωση δεδομένων
-df = pd.read_csv(data_path)
+def split_data(X, y, test_size=0.2, random_state=42):
+    """Διαχωρίζει τα δεδομένα σε σύνολα εκπαίδευσης και δοκιμών."""
+    return train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-# Αφαίρεση των μη αναγκαίων στηλών 'date' και 'time' (διατηρούμε το 'name')
-df = df.drop(columns=['date', 'time'])
+def prepare_dmatrix(X_train, X_test, y_train, y_test):
+    """Μετατρέπει τα δεδομένα σε DMatrix, που χρησιμοποιείται από το XGBoost."""
+    dtrain = xgb.DMatrix(X_train.drop(columns=['name']), label=y_train)
+    dtest = xgb.DMatrix(X_test.drop(columns=['name']), label=y_test)
+    return dtrain, dtest
 
-# Υποθέτουμε ότι η στήλη 'fire' είναι η στήλη-στόχος και οι υπόλοιπες είναι τα χαρακτηριστικά
-# Χωρισμός των χαρακτηριστικών και των στόχων
-X = df.drop(columns=['fire'])
-y = df['fire']
+def calculate_scale_pos_weight(y):
+    """Υπολογίζει το scale_pos_weight για αντιστάθμιση της ανισορροπίας στις κλάσεις."""
+    return len(y[y == 0]) / len(y[y == 1])
 
-# Υπολογισμός του λόγου κατηγοριών
-ratio = len(y[y == 0]) / len(y[y == 1])
+def train_model(dtrain, params, num_round=100):
+    """Εκπαιδεύει το XGBoost μοντέλο με cross-validation και επιστρέφει το καλύτερο μοντέλο."""
+    cv_results = xgb.cv(
+        params,
+        dtrain,
+        num_boost_round=num_round,
+        nfold=5,
+        early_stopping_rounds=10,
+        metrics="logloss",
+        as_pandas=True,
+        seed=42
+    )
+    best_num_round = cv_results['test-logloss-mean'].idxmin()
+    model = xgb.train(params, dtrain, best_num_round)
+    return model
 
-# Διαχωρισμός δεδομένων σε σύνολα εκπαίδευσης και δοκιμών
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def save_model(model, model_path):
+    """Αποθηκεύει το εκπαιδευμένο μοντέλο σε αρχείο."""
+    model.save_model(model_path)
+    print(f"Model saved to {model_path}")
 
-# Μετατροπή των δεδομένων σε DMatrix
-dtrain = xgb.DMatrix(X_train.drop(columns=['name']), label=y_train)
-dtest = xgb.DMatrix(X_test.drop(columns=['name']), label=y_test)
+def evaluate_model(model, dtest, y_test, threshold=0.8):
+    """Αξιολογεί το μοντέλο χρησιμοποιώντας διάφορα μέτρα απόδοσης."""
+    preds = model.predict(dtest)
+    predictions = [1 if p > threshold else 0 for p in preds]
 
-# Ορισμός υπερπαραμέτρων με scale_pos_weight
-params = {
-    'objective': 'binary:logistic',  # Αλλάζουμε σε classification
-    'max_depth': 5,
-    'eta': 0.1,
-    'eval_metric': 'logloss',  # Χρησιμοποιούμε log loss για ταξινόμηση
-    'scale_pos_weight': ratio  # Προσθήκη της βαρύτητας
-}
+    accuracy = accuracy_score(y_test, predictions)
+    precision = precision_score(y_test, predictions)
+    recall = recall_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions)
+    cm = confusion_matrix(y_test, predictions)
 
-# Εκπαίδευση του μοντέλου με cross-validation
-num_round = 100
-cv_results = xgb.cv(
-    params,
-    dtrain,
-    num_boost_round=num_round,
-    nfold=5,
-    early_stopping_rounds=10,
-    metrics="logloss",
-    as_pandas=True,
-    seed=42
-)
+    return accuracy, precision, recall, f1, cm
 
-# Εκπαίδευση του τελικού μοντέλου με τον καλύτερο αριθμό γύρων από το cross-validation
-best_num_round = cv_results['test-logloss-mean'].idxmin()
-bst = xgb.train(params, dtrain, best_num_round)
+def main():
+    # Διαδρομή δεδομένων και αρχείου μοντέλου
+    data_path = os.path.join(".", "Dimiscripts", "Datasets", "train_data.csv")
+    model_path = os.path.join(".", "Dimiscripts", "Models", "xgboost_fire_model.json")
 
-# Αποθήκευση του μοντέλου σε αρχείο
-model_path = os.path.join(".", "Dimiscripts", "Models", "xgboost_fire_model.json")
-bst.save_model(model_path)
-print(f"Model saved to {model_path}")
+    # Φόρτωση και προετοιμασία δεδομένων
+    X, y = load_data(data_path)
+    X_train, X_test, y_train, y_test = split_data(X, y)
+    dtrain, dtest = prepare_dmatrix(X_train, X_test, y_train, y_test)
+    scale_pos_weight = calculate_scale_pos_weight(y)
 
-# Πρόβλεψη και υπολογισμός ακρίβειας
-preds = bst.predict(dtest)
-predictions = [1 if p > 0.8 else 0 for p in preds]  # Μετατροπή σε κατηγορίες 0/1
+    # Ορισμός υπερπαραμέτρων
+    params = {
+        'objective': 'binary:logistic',
+        'max_depth': 5,
+        'eta': 0.1,
+        'eval_metric': 'logloss',
+        'scale_pos_weight': scale_pos_weight
+    }
 
-# Υπολογισμός μέτρων απόδοσης
-accuracy = accuracy_score(y_test, predictions)
-precision = precision_score(y_test, predictions)
-recall = recall_score(y_test, predictions)
-f1 = f1_score(y_test, predictions)
+    # Εκπαίδευση του μοντέλου
+    model = train_model(dtrain, params)
+    save_model(model, model_path)
 
-print("Accuracy:", accuracy)
-print("Precision:", precision)
-print("Recall:", recall)
-print("F1 Score:", f1)
+    # Αξιολόγηση του μοντέλου
+    accuracy, precision, recall, f1, cm = evaluate_model(model, dtest, y_test)
+    print("Accuracy:", accuracy)
+    print("Precision:", precision)
+    print("Recall:", recall)
+    print("F1 Score:", f1)
+    print("Confusion Matrix:\n", cm)
 
-# Εμφάνιση του Confusion Matrix
-cm = confusion_matrix(y_test, predictions)
-print("Confusion Matrix:\n", cm)
+# Εκτέλεση του κύριου προγράμματος
+if __name__ == "__main__":
+    main()

@@ -11,3 +11,5 @@ GiorgosScripts/Final_datasets_with_fire/
 
 # Αγνόηση του φακέλου node_modules στο FrontEnd
 Application/FrontEnd/hackinterface/node_modules
+
+Application/BackEnd/fastapi-env/Lib

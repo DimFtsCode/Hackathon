@@ -15,7 +15,7 @@ data_path = os.path.join(".", "Dimiscripts", "Datasets", "train_data.csv")
 
 # Φόρτωση δεδομένων από το αρχείο CSV
 df = pd.read_csv(data_path)
-S
+
 
 # # Φόρτωση δεδομένων
 # df = pd.read_csv('/Users/giorgosziakas/Desktop/train_data.csv')
