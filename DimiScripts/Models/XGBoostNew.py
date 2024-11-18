@@ -23,12 +23,12 @@ df = pd.read_csv(data_path)
 
 
 # Interaction feature: fire risk score
-df['fire_risk_score'] = df['temperature'] * 0.3 + df['humidity'] * -0.2 + df['wind_speed'] * 0.5
+# df['fire_risk_score'] = df['temperature'] * 0.3 + df['humidity'] * -0.2 + df['wind_speed'] * 0.5
 
-# Geospatial clustering
-# coords = df[['latitude', 'longitude']]
-# kmeans = KMeans(n_clusters=5, random_state=0).fit(coords)
-# df['location_cluster'] = kmeans.labels_
+# # Geospatial clustering
+coords = df[['latitude', 'longitude']]
+kmeans = KMeans(n_clusters=5, random_state=0).fit(coords)
+df['location_cluster'] = kmeans.labels_
 
 # Drop unnecessary columns
 df = df.drop(columns=['date', 'time', 'name'])

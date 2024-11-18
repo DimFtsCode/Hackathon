@@ -47,7 +47,7 @@ async def fetch_weather_and_predict_periodically():
         print(f"[{datetime.now()}] Prediction data updated.")
         await asyncio.sleep(300)  # 5 λεπτά
 
-# Εκκίνηση του background task κατά την εκκίνηση του app
+# Εκκίνηση του background task κατά την εκκίνηση του appA
 @app.on_event("startup")
 async def start_weather_fetcher():
     global background_task
@@ -76,3 +76,32 @@ def get_latest_weather(region_name: str):
 @app.get("/regions")
 def list_regions():
     return prediction_live.mountains_cycle.list_regions()
+
+
+@app.get("/predictions")
+def get_all_predictions():
+    """
+    Επιστρέφει όλα τα δεδομένα από τη συλλογή PredictionLive.
+    """
+    documents = weather_collection.find()
+    predictions = []
+    for doc in documents:
+        doc["_id"] = str(doc["_id"])  # Μετατροπή του ObjectId σε string για επιστροφή
+        predictions.append(doc)
+    return {"data": predictions}
+
+
+@app.get("/latest-predictions")
+def get_latest_predictions():
+    """
+    Επιστρέφει τα τελευταία 29 δεδομένα από τη συλλογή PredictionLive.
+    """
+    # Ανάκτηση των 29 τελευταίων εγγραφών, ταξινομημένες με βάση την ημερομηνία και ώρα
+    documents = weather_collection.find().sort([("date", -1), ("time", -1)]).limit(29)
+    
+    predictions = []
+    for doc in documents:
+        doc["_id"] = str(doc["_id"])  # Μετατροπή του ObjectId σε string για επιστροφή
+        predictions.append(doc)
+    
+    return {"data": predictions}

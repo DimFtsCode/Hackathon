@@ -1,0 +1,129 @@
+.home-container {
+    background: url('./images/project1.jpg') no-repeat center center;
+    background-size: cover;
+    color: white; /* Set the text color to white for better contrast */
+    min-height: 100vh; /* Εξασφαλίζει ότι το φόντο καλύπτει όλο το παράθυρο */
+    display: flex; /* Flexbox για κεντράρισμα περιεχομένου */
+    flex-direction: column; /* Κατακόρυφη στοίχιση */
+    align-items: center; /* Οριζόντιο κεντράρισμα */
+    justify-content: center; /* Κάθετο κεντράρισμα */
+    padding: 2rem;
+}
+
+    .intro-section {
+        margin-bottom: 2rem;
+        background-color: rgba(0, 0, 0, 0.6); /* Add a semi-transparent background to ensure readability */
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 800px; /* Περιορισμός του πλάτους */
+    }
+
+    .intro-section h1 {
+        font-size: 2.5rem;
+        color: #ff3b3b; /* Adjust color to make the text stand out */
+    }
+
+    .intro-section p,
+    .benefits-list {
+        font-size: 1.2rem;
+    }
+
+    .benefits-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .benefits-list li {
+        margin-bottom: 0.5rem;
+    }
+
+    .login-section {
+        width: 100%; /* Εξασφαλίζει πλήρη κάλυψη */
+        display: flex;
+        justify-content: center; /* Κεντράρισμα φόρμας */
+        align-items: center;
+        margin-top: 1rem; /* Απόσταση από το κείμενο */
+    }
+
+    .login-form-container {
+        max-width: 400px;
+        width: 100%;
+        padding: 2rem;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.9)); /* Gradient φόντο */
+        border-radius: 20px; /* Πιο στρογγυλεμένες γωνίες */
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Εντονότερη σκιά */
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Animation */
+    }
+
+    .login-form-container:hover {
+        transform: translateY(-5px); /* Ελαφριά ανύψωση κατά το hover */
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3); /* Εντονότερη σκιά κατά το hover */
+    }
+
+    .login-form-container h3 {
+        margin-bottom: 1.5rem;
+        color: #222; /* Σκούρο χρώμα για αντίθεση */
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        color: #444; /* Διακριτικό σκούρο χρώμα */
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        border: 1px solid #ddd; /* Διακριτικό περίγραμμα */
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05); /* Ελαφριά εσωτερική σκίαση */
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border: 1px solid #007bff; /* Εμφάνιση χρώματος κατά το focus */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Εφέ φωτός κατά το focus */
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px); /* Ελαφριά ανύψωση στο hover */
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px); /* Ελαφριά ανύψωση στο hover */
+    }
+
+    .text-danger {
+        color: #ff0000;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 1rem;
+    }

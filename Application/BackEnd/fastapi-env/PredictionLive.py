@@ -4,6 +4,7 @@ from MountainsCycle import MountainsCycle  # Εισαγωγή της MountainsCy
 import pandas as pd
 import numpy as np
 import xgboost as xgb
+import pytz  # Για μετατροπή ζώνης ώρας
 
 
 
@@ -56,6 +57,27 @@ class PredictionLive:
                  'day_cos', 'day_sin', 'hour_cos', 'hour_sin', 'humidity', 'visibility']]
         
         return df
+    
+    def convert_utc_to_local(self, time_str, date_str):
+        """
+        Μετατρέπει UTC ώρα σε τοπική ώρα με βάση την ημερομηνία.
+        :param time_str: Η ώρα σε μορφή 'HH:MM'.
+        :param date_str: Η ημερομηνία σε μορφή 'YYYY-MM-DD'.
+        :return: Τοπική ώρα σε μορφή 'HH:MM'.
+        """
+        # Συνδυασμός ημερομηνίας και ώρας
+        utc = pytz.utc
+        local_tz = pytz.timezone("Europe/Athens")
+
+        # Μετατροπή σε datetime αντικείμενο
+        utc_datetime = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M").replace(tzinfo=utc)
+
+        # Μετατροπή σε τοπική ώρα
+        local_datetime = utc_datetime.astimezone(local_tz)
+
+        # Επιστροφή μόνο της ώρας σε μορφή 'HH:MM'
+        return local_datetime.strftime("%H:%M")
+
 
     def predict(self, transformed_data):
         # Ορισμός της σωστής σειράς χαρακτηριστικών όπως αναμένεται από το μοντέλο
@@ -79,23 +101,29 @@ class PredictionLive:
         # Λήψη δεδομένων από την MountainsCycle
         weather_data = self.mountains_cycle.fetch_all_weather_data()
 
-        # Προσθήκη επιπλέον πεδίων στο DataFrame για αποθήκευση
+        # Δημιουργία DataFrame με τα αρχικά δεδομένα
         df_original = pd.DataFrame(weather_data)  # Διατήρηση των πρωτότυπων πεδίων όπως 'name', 'date', 'time', 'radius_km'
 
-        # Μετατροπή δεδομένων
+        # Μετατροπή UTC χρόνου σε τοπική ώρα
+        df_original['time'] = df_original.apply(
+            lambda row: self.convert_utc_to_local(row['time'], row['date']),
+            axis=1
+        )
+
+        # Μετατροπή δεδομένων σε μορφή που χρειάζεται το μοντέλο
         transformed_data = self.transform_data(weather_data)
-        
+
         # Προσθέστε το πεδίο wind_dir στη σωστή μορφή για το prediction
         transformed_data = transformed_data.rename(columns={"wind_dir_degrees": "wind_dir"})
 
         # Εκτέλεση πρόβλεψης
         predictions = self.predict(transformed_data)
 
-        # Προσθήκη των προβλέψεων και των επιπλέον πεδίων στα δεδομένα καιρού
+        # Προσθήκη των προβλέψεων και των επιπλέον πεδίων στα δεδομένα
         transformed_data['prediction'] = predictions
         transformed_data['name'] = df_original['name']
         transformed_data['date'] = df_original['date']
-        transformed_data['time'] = df_original['time']
+        transformed_data['time'] = df_original['time']  # Τοπική ώρα
         transformed_data['radius_km'] = df_original['radius_km']
 
         # Αναδιάταξη των στηλών στη σωστή σειρά για αποθήκευση
@@ -111,3 +139,4 @@ class PredictionLive:
         if prediction_data:
             self.predictions_collection.insert_many(prediction_data)
             print(f"[{datetime.now()}] Predictions with name, date, time, and radius_km saved to MongoDB.")
+
