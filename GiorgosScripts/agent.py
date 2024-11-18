@@ -5,7 +5,7 @@ import re
 import math
 
 # Initialize the OpenAI client 
-client = OpenAI(api_key='sk-3BK6RP81kQjI5KSGwLQd4izdAR_FNA7Vh1U5fCp7blT3BlbkFJbTmubk7arC_iQY4wdIAi1OSCb8iQGDap_WSqS2UiIA')
+client = OpenAI(api_key='Replace witho your OpenAI API key')
 
 # MongoDB connection URI
 mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
@@ -45,7 +45,7 @@ def extract_date_location_coordinates(query):
     date_match = re.search(r"\d{4}-\d{2}-\d{2}", query)
     date = date_match.group(0) if date_match else None
 
-    locations = ["Anthousa", "Dioni", "Melissia", "Marathon", "Nea Penteli"]
+    locations = ["Anthousa", "Dioni", "Melissia", "Marathon", "Nea Penteli"] # add all locations for final
     found_locations = []
     for loc in locations:
         if loc.lower() in query.lower():
