@@ -1,8 +1,10 @@
 from fastapi import FastAPI, BackgroundTasks, Depends
+from pydantic import BaseModel
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
 from mongodbendpoints import router as weather_router
 from PredictionLive import PredictionLive  # Εισαγωγή της PredictionLive
+from Gemini_Bot import initialize_llm, llm_response
 import asyncio
 from datetime import datetime  # Ορισμός του datetime για εκτύπωση χρόνου
 
@@ -28,6 +30,7 @@ app.add_middleware(
 
 # Προσθήκη των MongoDB endpoints
 app.include_router(weather_router)
+
 
 # Δημιουργία αντικειμένου PredictionLive
 api_key = "23ecd879f082445734dc2066bf821571"
@@ -105,3 +108,18 @@ def get_latest_predictions():
         predictions.append(doc)
     
     return {"data": predictions}
+
+# Δημιουργία Pydantic BaseModel για το incoming chat message
+class ChatMessage(BaseModel):
+    message: str
+    
+# initialize the LLM
+model = initialize_llm()
+
+# Endpoint για την απάντηση του chatbot
+@app.post("/api/chat")
+async def chat_endpoint(chat_message: ChatMessage):
+    user_message = chat_message.message
+    # Call your LLM script here and get the response
+    bot_reply = await llm_response(model, user_message)
+    return {"reply": bot_reply}

@@ -11,10 +11,10 @@ const Header = () => {
                 {/* ChatBox - Τέρμα Αριστερά */}
                 <a
                     className="navbar-brand"
-                    onClick={() => navigate('/chatbox')}
+                    onClick={() => navigate('/chatbot')}
                     style={{ cursor: 'pointer', fontWeight: 'normal' }}
                 >
-                    ChatBox
+                    ChatBot
                 </a>
                 <button
                     className="navbar-toggler"

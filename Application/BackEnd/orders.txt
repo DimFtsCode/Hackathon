@@ -10,4 +10,10 @@ Open / ReOpen:
 fastapi-env\Scripts\activate
 uvicorn main:app --reload
 
+
+ΣΗΜΑΝΤΙΚΟ: 
+Στο αρχείο PredictionLive.py, στην κλάση PredictionLive το "model_path" πρέπει να αλλάξει ανάλογα με το που είναι αποθηκευμένο τοπικά το repository.
+
+Το chatbot ΔΕΝ θα δουλέψει αν στο 'gemini_bot.py' δεν βάλετε το δικό σας API KEY.
+
 Run EndPoints: http://127.0.0.1:8000/weather/6730beff59469079dacf3c97

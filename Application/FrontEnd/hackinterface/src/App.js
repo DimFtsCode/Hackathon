@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './login'; // Import του component login (Home)
-import Dashboard from './chatbox'; // Το αρχικό component
+import Dashboard from './chatbot'; // Το αρχικό component
 import Header from './header'; // Import του Header component
 import Demo from './demo'; // Νέο Demo Component
 import Live from './live'; // Νέο Live Component
@@ -29,7 +29,7 @@ function App() {
 
                 {/* Protected Routes with Header */}
                 <Route
-                    path="/chatbox"
+                    path="/chatbot"
                     element={
                         <MainLayout>
                             <Dashboard />

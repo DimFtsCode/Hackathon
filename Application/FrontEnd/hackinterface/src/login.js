@@ -16,7 +16,7 @@ const Login = () => {
         e.preventDefault();
         // Έλεγχος τοπικών διαπιστευτηρίων
         if (email === localUsername && password === localPassword) {
-            navigate('/chatbox'); // Redirect στη σελίδα Dashboard
+            navigate('/chatbot'); // Redirect στη σελίδα Dashboard
         } else {
             setError('Invalid username or password');
         }
