@@ -2,33 +2,34 @@ from pymongo import MongoClient
 from sentence_transformers import SentenceTransformer
 from openai import OpenAI
 import re
+import math
 
-client=OpenAI(api_key="") 
+# Initialize the OpenAI client 
+client = OpenAI(api_key='Replace witho your OpenAI API key')
+
+# MongoDB connection URI
 mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
 mongo_client = MongoClient(mongo_uri)
-
 
 # Επιλογή βάσης δεδομένων και συλλογής
 db = mongo_client["Weather"]
 weather_collection = db["Hackathon"]
+critical_infra_collection = db["CriticalInfra"]  # Collection for Critical Infrastructure
 
 print("Connected to MongoDB successfully.")
 
-# Φόρτωση του SentenceTransformer μοντέλου
+# Φόρτωση του μοντέλου SentenceTransformer
 embedding_model = SentenceTransformer("thenlper/gte-large")
 print("Loaded SentenceTransformer model successfully.")
 
-
-# Συνάρτηση για τη δημιουργία embedding χρησιμοποιώντας το SentenceTransformer
+# Συνάρτηση για δημιουργία embedding
 def get_embedding(text):
     if not text.strip():
         print("Attempted to get embedding for empty text.")
         return []
-    
-    # Χρήση της μεθόδου encode για τη δημιουργία του embedding
+
     embedding = embedding_model.encode(text)
     return embedding.tolist()
-
 
 # Συνάρτηση για μετατροπή εγγραφής σε περιγραφικό κείμενο
 def create_text_from_record(record):
@@ -39,69 +40,38 @@ def create_text_from_record(record):
             f"Humidity: {record.get('humidity', 'N/A')}%, Visibility: {record.get('visibility', 'N/A')} km")
     return text
 
-
-# Δημιουργία και αποθήκευση embeddings για κάθε εγγραφή στη συλλογή
-def generate_and_store_embeddings():
-    documents = weather_collection.find()
-    
-    for doc in documents:
-        # Δημιουργία περιγραφικού κειμένου από την εγγραφή
-        text = create_text_from_record(doc)
-        
-        # Δημιουργία embedding για το κείμενο
-        embedding = get_embedding(text)
-        
-        # Αποθήκευση του embedding στην εγγραφή
-        weather_collection.update_one(
-            {"_id": doc["_id"]},
-            {"$set": {"embedding": embedding.tolist()}}
-        )
-        print(f"Stored embedding for document with _id: {doc['_id']}")
-
-# Κλήση της συνάρτησης για τη δημιουργία και αποθήκευση embeddings
-generate_and_store_embeddings()
-
-
-
-
-def extract_date_and_locations(query):
-    # Εξαγωγή ημερομηνίας με χρήση regex
+# Συνάρτηση για εξαγωγή ημερομηνίας, τοποθεσίας και συντεταγμένων από το ερώτημα
+def extract_date_location_coordinates(query):
     date_match = re.search(r"\d{4}-\d{2}-\d{2}", query)
     date = date_match.group(0) if date_match else None
 
-    # Λίστα γνωστών τοποθεσιών (ενημέρωσέ την με τις δικές σου τοποθεσίες)
-    locations = ["Anthousa", "Dioni", "OtherLocation"]  # Προσάρμοσε αυτή τη λίστα
+    locations = ["Anthousa", "Dioni", "Melissia", "Marathon", "Nea Penteli"] # add all locations for final
     found_locations = []
     for loc in locations:
         if loc.lower() in query.lower():
             found_locations.append(loc)
 
-    return date, found_locations
+    # Εξαγωγή συντεταγμένων
+    lat_match = re.search(r"lat\s*[:=]\s*([0-9.\-]+)", query, re.IGNORECASE)
+    lon_match = re.search(r"lon\s*[:=]\s*([0-9.\-]+)", query, re.IGNORECASE)
+    latitude = float(lat_match.group(1)) if lat_match else None
+    longitude = float(lon_match.group(1)) if lon_match else None
 
+    return date, found_locations, latitude, longitude
+
+# Συνάρτηση για αναζήτηση αποτελεσμάτων στη βάση δεδομένων
 def query_results(query):
-    """
-    Δημιουργεί embedding για την ερώτηση και εκτελεί αναζήτηση στη MongoDB
-    για τις πιο σχετικές εγγραφές, χρησιμοποιώντας τον δείκτη `vector_index`
-    και φίλτρα για ημερομηνία και τοποθεσία.
-    """
-    # Δημιουργία embedding της ερώτησης
     query_embedding = get_embedding(query)
+    date_filter, location_filters, _, _ = extract_date_location_coordinates(query)
 
-    # Εξαγωγή ημερομηνίας και τοποθεσίας από την ερώτηση
-    date_filter, location_filters = extract_date_and_locations(query)
-
-    # Δημιουργία φίλτρου για την αναζήτηση
     filter_conditions = {}
     if date_filter:
         filter_conditions['date'] = date_filter
     if location_filters:
-        # Χρήση του τελεστή $in για να συμπεριληφθούν όλες οι τοποθεσίες
         filter_conditions['name'] = {'$in': location_filters}
 
-    # Εκτέλεση αναζήτησης vector similarity με φίλτρα
     pipeline = [
         {
-            
             "$vectorSearch": {
                 "index": "vector_index",
                 "path": "embedding",
@@ -112,118 +82,215 @@ def query_results(query):
         }
     ]
 
-    # Εάν υπάρχουν φίλτρα, τα προσθέτουμε στο pipeline
     if filter_conditions:
         pipeline[0]["$vectorSearch"]["filter"] = filter_conditions
 
     results = db.Hackathon.aggregate(pipeline)
     return list(results)
 
-# Συνάρτηση για τη διαμόρφωση των αποτελεσμάτων της αναζήτησης σε κείμενο
+# Συνάρτηση για λήψη αποτελεσμάτων αναζήτησης και δημιουργία περιγραφής
 def get_search_results(query):
-    """
-    Λαμβάνει τα πιο σχετικά αποτελέσματα από την MongoDB και δημιουργεί
-    μια περιγραφή για το LLM.
-    """
     results = query_results(query)
-    
-    # Δημιουργία περιγραφικού κειμένου για τα αποτελέσματα
+
     search_results = ""
     for result in results:
         search_results += create_text_from_record(result) + "\n"
     return search_results, results
 
+# Συνάρτηση για λήψη κρίσιμων υποδομών με βάση τις συντεταγμένες
+def get_critical_infra_descriptions(latitude, longitude, radius=0.01):
+    if latitude is None or longitude is None:
+        return []
 
-# Συνάρτηση για την ανάλυση των καιρικών συνθηκών και την παραγωγή οδηγιών
-def analyze_weather_conditions(results):
-    """
-    Αναλύει τα αποτελέσματα και εντοπίζει επικίνδυνες συνθήκες.
-    Επιστρέφει μια λίστα με οδηγίες.
-    """
-    instructions = []
+    query = {
+        "latitude": {"$gte": latitude - radius, "$lte": latitude + radius},
+        "longitude": {"$gte": longitude - radius, "$lte": longitude + radius}
+    }
+    results = critical_infra_collection.find(query)
+    descriptions = []
     for result in results:
-        temperature = result.get('temperature', 0)
-        humidity = result.get('humidity', 100)
-        wind_speed = result.get('wind_speed', 0)
-        wind_dir = result.get('wind_dir', 'N/A')
-        location = result.get('name', 'Unknown')
-        date = result.get('date', 'N/A')
-        time = result.get('time', 'N/A')
+        category = result.get("category", -1)
+        if category is not None:
+            category = int(category)
+        else:
+            category = -1
 
-        # Εντοπισμός επικίνδυνων συνθηκών
-        if temperature > 30 and humidity < 20:
-            instruction = f"High risk of fire in {location} on {date} at {time}. "
-            if wind_dir in ['NE', 'ENE', 'NNE']:
-                instruction += f"Recommend sending drone to the northeast direction due to {wind_dir} winds."
-            elif wind_dir in ['E', 'SE', 'SSE']:
-                instruction += f"Recommend sending drone to the southeast direction due to {wind_dir} winds."
-            # Προσθέστε επιπλέον συνθήκες για άλλες κατευθύνσεις ανέμου
-            else:
-                instruction += f"Recommend monitoring the area closely."
-            instructions.append(instruction)
-    return instructions
+        descriptions.append({
+            "description": result.get("description", "Unknown"),
+            "category": category
+        })
+    return descriptions
 
+# Συνάρτηση για μετατροπή κατεύθυνσης ανέμου σε μοίρες
+def wind_direction_to_degrees(wind_dir):
+    directions = {
+        'N': 0, 'NNE': 22.5, 'NE': 45, 'ENE': 67.5,
+        'E': 90, 'ESE': 112.5, 'SE': 135, 'SSE': 157.5,
+        'S': 180, 'SSW': 202.5, 'SW': 225, 'WSW': 247.5,
+        'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
+    }
+    return directions.get(wind_dir.upper(), None)
 
-# Συνάρτηση για την παραγωγή απάντησης με χρήση του OpenAI API
+# Συνάρτηση για υπολογισμό κατεύθυνσης προς την οποία φυσάει ο άνεμος
+def calculate_downwind_bearing(wind_deg):
+    return (wind_deg + 180) % 360
+
+# Συνάρτηση για υπολογισμό αρχικής πορείας μεταξύ δύο σημείων
+def calculate_initial_compass_bearing(lat1, lon1, lat2, lon2):
+    lat1 = math.radians(lat1)
+    lat2 = math.radians(lat2)
+    diff_lon = math.radians(lon2 - lon1)
+
+    x = math.sin(diff_lon) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - \
+        (math.sin(lat1) * math.cos(lat2) * math.cos(diff_lon))
+    initial_bearing = math.atan2(x, y)
+    initial_bearing = math.degrees(initial_bearing)
+    compass_bearing = (initial_bearing + 360) % 360
+    return compass_bearing
+
+# Συνάρτηση για υπολογισμό απόστασης μεταξύ δύο σημείων
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Ακτίνα της Γης σε χιλιόμετρα
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + \
+        math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
+        math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance = R * c
+    return distance
+
+# Συνάρτηση για έλεγχο αν ένα σημείο βρίσκεται εντός ενός τομέα
+def is_within_sector(source_lat, source_lon, target_lat, target_lon, bearing, angle_range=45):
+    initial_bearing = calculate_initial_compass_bearing(source_lat, source_lon, target_lat, target_lon)
+    angle_diff = min((initial_bearing - bearing) % 360, (bearing - initial_bearing) % 360)
+    return angle_diff <= (angle_range / 2)
+
+# Συνάρτηση για παραγωγή της τελικής απάντησης χρησιμοποιώντας το OpenAI API
 def generate_text(query):
-    """
-    Συνδυάζει την ερώτηση του χρήστη με τα αποτελέσματα της αναζήτησης,
-    αναλύει τις συνθήκες και χρησιμοποιεί το OpenAI API για να παράγει την τελική απάντηση.
-    """
-    # Λήψη των αποτελεσμάτων της αναζήτησης και των ακατέργαστων δεδομένων
     source_information, results = get_search_results(query)
 
-    # Ανάλυση των συνθηκών για παραγωγή οδηγιών
-    instructions = analyze_weather_conditions(results)
+    # Εξαγωγή συντεταγμένων από την ερώτηση
+    _, _, query_latitude, query_longitude = extract_date_location_coordinates(query)
 
-    # Δημιουργία του περιεχομένου για το LLM
+    # Λήψη κρίσιμων υποδομών με βάση τις συντεταγμένες
+    critical_infra_descriptions = get_critical_infra_descriptions(query_latitude, query_longitude)
+
+    if results:
+        source_area = results[0]
+        source_name = source_area.get('name')
+        source_lat = source_area.get('latitude')
+        source_lon = source_area.get('longitude')
+        wind_dir = source_area.get('wind_dir')
+        wind_deg = wind_direction_to_degrees(wind_dir)
+        downwind_bearing = calculate_downwind_bearing(wind_deg)
+    else:
+        source_name = None
+        source_lat = query_latitude
+        source_lon = query_longitude
+        wind_dir = None
+        wind_deg = None
+        downwind_bearing = None
+
+    # Αν έχουμε συντεταγμένες και κατεύθυνση ανέμου
+    at_risk_areas = []
+    if source_lat and source_lon and downwind_bearing is not None:
+        # Εύρεση άλλων περιοχών από τη συλλογή Hackathon
+        radius_km = 20  # Ακτίνα σε χιλιόμετρα
+        query = {
+            "latitude": {"$exists": True},
+            "longitude": {"$exists": True},
+            "name": {"$ne": source_name}
+        }
+        other_areas = list(weather_collection.find(query))
+
+        for area in other_areas:
+            target_lat = area.get('latitude')
+            target_lon = area.get('longitude')
+            if target_lat and target_lon:
+                distance = haversine_distance(source_lat, source_lon, target_lat, target_lon)
+                if distance <= radius_km:
+                    if is_within_sector(source_lat, source_lon, target_lat, target_lon, downwind_bearing):
+                        at_risk_areas.append(area.get('name'))
+
+    # Αφαίρεση διπλότυπων
+    at_risk_areas = list(set(at_risk_areas))
+
+    # Δημιουργία περιεχομένου για το LLM
+    combined_information = f"Question: {query}\n"
+
     if source_information.strip():
-        combined_information = (
-            f"Question: {query}\n"
-            f"Using the following information, answer the question and provide any necessary fire prevention instructions:\n"
+        combined_information += (
+            f"Using the following weather information, answer the question:\n"
             f"{source_information}\n"
         )
-        if instructions:
-            combined_information += "\nDetected conditions:\n"
-            for instr in instructions:
-                combined_information += f"- {instr}\n"
     else:
-        combined_information = f"Question: {query}\nI couldn't find specific data matching your query."
+        combined_information += "I couldn't find specific weather data matching your query.\n"
 
-    # Κλήση του OpenAI API με χρήση ChatCompletion
+    if critical_infra_descriptions:
+        combined_information += "Important nearby locations based on provided coordinates:\n"
+        for desc in critical_infra_descriptions:
+            category = desc['category']
+            description = desc['description']
+            if category == 0:
+                importance = f"{description} (Drone location)"
+            elif category == 1:
+                importance = f"{description} (Fire Station - can assist quickly in emergencies)"
+            elif category == 2:
+                importance = f"{description} (Police Station - important for security)"
+            elif category == 3:
+                importance = f"{description} (Critical facility such as hospital or educational institution)"
+            else:
+                importance = description  # For unknown category
+            combined_information += f"- {importance}\n"
+    else:
+        combined_information += "No critical infrastructure found near the provided coordinates.\n"
+
+    # Προσθήκη περιοχών που κινδυνεύουν
+    if at_risk_areas:
+        combined_information += "\nBased on the wind direction and speed, the following nearby areas may be at risk:\n"
+        for area in at_risk_areas:
+            combined_information += f"- {area}\n"
+    else:
+        combined_information += "\nNo nearby areas are identified as at risk based on the wind direction and proximity.\n"
+
+    # Ζητήστε από το LLM να παρέχει σχόλια
+    combined_information += "\nPlease provide a brief commentary on the weather conditions,alert for sending drones for surveillance and emergency response, the importance of the nearby locations, and the potential risks to the areas listed above.\n"
+
+    # Κλήση του OpenAI API
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are a helpful assistant that provides precise weather information. "
-                    "When you detect conditions that indicate a high risk of fire (e.g., temperature above 30°C, humidity below 20%, "
-                    "or specific wind directions), you should provide specific fire prevention instructions, such as recommending drone surveillance "
-                    "in the direction of the wind."
+                    "You are a helpful assistant that provides precise weather information "
+                    "Alerts for sending drones for surveillance and emergency response. "
+                    "and highlights important nearby locations based on the user's query. "
+                    "Using the wind direction from the provided weather data, identify nearby areas that might be at risk "
+                    "due to the wind conditions, based on your knowledge of the geography. "
+                    "Present the information in clear, well-organized markdown tables and provide a brief commentary on the results."
                 )
             },
             {"role": "user", "content": combined_information}
         ],
-        max_tokens=300,
+        max_tokens=500,
         temperature=0.7
     )
 
     answer = response.choices[0].message.content.strip()
     return answer
 
-
 # Παράδειγμα χρήσης
 if __name__ == "__main__":
-    query = "What locations are covered in the dataset?"
-    query = "On 2019-05-01 in which region had we the highest temperature: 'Dioni' or 'Anthousa'?"
-    query = "Which locations have high wind levels on 2022-08-05?"
-    query = "What are the weather conditions in Dioni on 2019-05-01?"
-    query = "What are the fire prevention recommendations for Anthousa on 2021-08-05?"
-
+    query = "What are the weather conditions in Anthousa on 2019-05-01? Also, what important locations are near lat:38.0576 lon:23.8433?"
     answer = generate_text(query)
-    print("Απάντηση:")
+    print("Answer:")
     print(answer)
+
+
+
     
 
 
