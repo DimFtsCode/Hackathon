@@ -7,7 +7,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* create a pseudo element that will cover the entire page for the background image */
+/* create a pseudo element that will cover the entire page for the background gradient */
 body::before {
   content: "";
   position: fixed;
@@ -17,13 +17,14 @@ body::before {
   bottom: 0;
   z-index: -1;
 
-  /* background-image: url(/src/images/background2.jpg); */
+  /* Radial gradient for the background */
+  background: linear-gradient(to right,white,grey, black);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
 
-  opacity: 0.7;
+  opacity: 0.9; /* Adjust opacity for blending with content */
 }
 
 code {

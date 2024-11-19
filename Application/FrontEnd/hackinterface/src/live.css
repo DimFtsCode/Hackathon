@@ -1,0 +1,20 @@
+#region-tabs .nav-link {
+    color: white; /* Αλλαγή χρώματος στο μη επιλεγμένο tab */
+    background-color: rgba(0, 0, 0, 0.6); /* Σκούρο φόντο */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Απαλό border */
+    border-radius: 5px; /* Στρογγυλεμένες γωνίες */
+    margin-right: 5px; /* Απόσταση ανάμεσα στα tabs */
+    transition: background-color 0.3s ease; /* Ομαλή αλλαγή χρώματος */
+  }
+  
+  #region-tabs .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Εφέ hover */
+    color: #ddd; /* Απαλό λευκό κείμενο */
+  }
+  
+  #region-tabs .nav-link.active {
+    background-color: #555; /* Χρώμα για το επιλεγμένο tab */
+    color: white; /* Λευκό κείμενο */
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Εντονότερο border */
+  }
+  

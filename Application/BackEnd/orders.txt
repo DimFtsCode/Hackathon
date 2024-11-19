@@ -12,6 +12,8 @@ uvicorn main:app --reload
 
 
 ΣΗΜΑΝΤΙΚΟ: 
+pip install google-generativeai
+pip install ipython
 Στο αρχείο PredictionLive.py, στην κλάση PredictionLive το "model_path" πρέπει να αλλάξει ανάλογα με το που είναι αποθηκευμένο τοπικά το repository.
 
 Το chatbot ΔΕΝ θα δουλέψει αν στο 'gemini_bot.py' δεν βάλετε το δικό σας API KEY.

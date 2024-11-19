@@ -1,12 +1,27 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import logo from './images/logo.jpg'; // Προσαρμοσμένη διαδρομή για το logo
 
 const Header = () => {
     const navigate = useNavigate();
 
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
+            <img 
+                src={logo} 
+                alt="FlameShield Logo" 
+                style={{
+                    height: '50px',            // Ύψος
+                    width: 'auto',             // Πλάτος (προσαρμόζεται αναλογικά με το ύψος)
+                    marginRight: '10px',       // Περιθώριο δεξιά
+                    marginLeft: '10px',
+                    borderRadius: '10px',      // Στρογγυλεμένες γωνίες
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', // Σκιά για να ξεχωρίζει
+                    objectFit: 'cover',        // Προσαρμογή της εικόνας αν δεν έχει σωστές διαστάσεις
+                    border: '2px solid #ccc'   // Γραμμή περιγράμματος γύρω από την εικόνα
+                }} 
+            />
             <div className="container-fluid">
                 {/* ChatBox - Τέρμα Αριστερά */}
                 <a
@@ -28,8 +43,8 @@ const Header = () => {
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
-                    {/* Κεντραρισμένα Στοιχεία */}
-                    <ul className="navbar-nav mx-auto">
+                    {/* Στοιχεία Navbar */}
+                    <ul className="navbar-nav">
                         <li className="nav-item">
                             <a
                                 className="nav-link"
@@ -48,8 +63,9 @@ const Header = () => {
                                 Fire Monitor Live
                             </a>
                         </li>
+                        
                     </ul>
-                    {/* Help και Log Out - Τέρμα Δεξιά */}
+                    {/* Log Out - Τέρμα Δεξιά */}
                     <ul className="navbar-nav">
                         <li className="nav-item me-3">
                             <a

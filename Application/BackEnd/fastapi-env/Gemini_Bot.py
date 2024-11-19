@@ -16,7 +16,7 @@ def to_markdown(text):
 
 def initialize_llm():
     # Set your Gemini API key
-    os.environ['GOOGLE_API_KEY']='your_api_key' # replace with your own key
+    os.environ['GOOGLE_API_KEY']='AIzaSyD0FaTipIU-A3BBue-bJO0QrBtUscdd02Y' # replace with your own key
     palm.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = palm.GenerativeModel('gemini-1.5-flash')
     return model

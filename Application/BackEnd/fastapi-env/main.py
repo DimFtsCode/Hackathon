@@ -1,4 +1,4 @@
-from fastapi import FastAPI, BackgroundTasks, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +10,8 @@ from datetime import datetime  # Ορισμός του datetime για εκτύ�
 
 # Αρχικοποίηση του FastAPI app
 app = FastAPI()
+
+websocket_clients = set()
 
 # Σύνδεση με τη MongoDB
 mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
@@ -41,14 +43,36 @@ background_task = None
 
 # Background task για περιοδική ανανέωση καιρικών δεδομένων και προβλέψεων
 async def fetch_weather_and_predict_periodically():
+    global websocket_clients  # Χρήση της websocket_clients ως global
     while True:
         print(f"[{datetime.now()}] Starting fetch_weather_and_predict_periodically")
         
-        # Κλήση της fetch_and_process χωρίς επιστροφή δεδομένων
+        # Κλήση της fetch_and_process
         prediction_live.fetch_and_process()
         
+        # Ειδοποίηση όλων των WebSocket clients
+        for client in websocket_clients:
+            try:
+                await client.send_json({"message": "New data available"})
+            except WebSocketDisconnect:
+                websocket_clients.remove(client)
+
         print(f"[{datetime.now()}] Prediction data updated.")
         await asyncio.sleep(300)  # 5 λεπτά
+        
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    websocket_clients.add(websocket)
+    print(f"New WebSocket client connected. Total clients: {len(websocket_clients)}")
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        websocket_clients.remove(websocket)
+        print(f"WebSocket client disconnected. Total clients: {len(websocket_clients)}")
+
 
 # Εκκίνηση του background task κατά την εκκίνηση του appA
 @app.on_event("startup")
@@ -66,20 +90,6 @@ async def stop_weather_fetcher():
             await background_task
         except asyncio.CancelledError:
             print("Background task cancelled successfully")
-
-# Endpoint για ανάκτηση τελευταίων δεδομένων για συγκεκριμένη περιοχή
-@app.get("/weather/{region_name}")
-def get_latest_weather(region_name: str):
-    document = weather_collection.find_one({"name": region_name}, sort=[("date", -1), ("time", -1)])
-    if document:
-        return document
-    return {"error": f"No data found for region {region_name}"}
-
-# Endpoint για εμφάνιση όλων των περιοχών
-@app.get("/regions")
-def list_regions():
-    return prediction_live.mountains_cycle.list_regions()
-
 
 @app.get("/predictions")
 def get_all_predictions():
