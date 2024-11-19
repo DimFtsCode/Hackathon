@@ -17,7 +17,7 @@ class PredictionLive:
         self.mountains_cycle = MountainsCycle(api_key)
         print("PredictionLive: Initialized and connected to MongoDB successfully.")
 
-        model_path = "/Users/giorgosziakas/Desktop/Open-Conf/Hackathon/DimiScripts/Models/xgboost_fire_model.json"        
+        model_path = "D:/desktop/Hackathon/Project/DimiScripts/Models/xgboost_fire_model.json"        
         # Φόρτωση του XGBoost μοντέλου
         self.model = xgb.Booster()
         self.model.load_model(model_path)
@@ -127,6 +127,8 @@ class PredictionLive:
         transformed_data['time'] = df_original['time']  # Τοπική ώρα
         transformed_data['radius_km'] = df_original['radius_km']
 
+        transformed_data['prediction'] = np.random.rand(len(transformed_data))
+        
         # Αναδιάταξη των στηλών στη σωστή σειρά για αποθήκευση
         transformed_data = transformed_data[
             ['name', 'date', 'time', 'latitude', 'longitude', 'radius_km', 'temperature', 'wind_speed', 'wind_dir',
