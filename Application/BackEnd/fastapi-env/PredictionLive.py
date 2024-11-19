@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import pytz  # Για μετατροπή ζώνης ώρας
-
+from prediction_utils import process_prediction_row
 
 
 class PredictionLive:
@@ -13,10 +13,11 @@ class PredictionLive:
         self.mongo_client = MongoClient(mongo_uri)
         self.db = self.mongo_client["Weather"]
         self.predictions_collection = self.db["PredictionLive"]
+        self.critical_points_collection = self.db["CriticalInfra"]
         self.mountains_cycle = MountainsCycle(api_key)
         print("PredictionLive: Initialized and connected to MongoDB successfully.")
 
-        model_path = r"D:\desktop\Hackathon\Project\DimiScripts\Models\xgboost_fire_model.json"        
+        model_path = "/Users/giorgosziakas/Desktop/Open-Conf/Hackathon/DimiScripts/Models/xgboost_fire_model.json"        
         # Φόρτωση του XGBoost μοντέλου
         self.model = xgb.Booster()
         self.model.load_model(model_path)
@@ -134,9 +135,19 @@ class PredictionLive:
 
         # Μετατροπή σε λίστα από dictionaries για αποθήκευση στη MongoDB
         prediction_data = transformed_data.to_dict(orient='records')
-
+        
+        # Ορισμός της μεταβλητής all_areas
+        all_areas = df_original[['name', 'latitude', 'longitude']].drop_duplicates()
+    
+        # κλήση της συνάρτησης process_prediction_row για κάθε γραμμή του DataFrame
+        processed_data = []
+        for row in prediction_data:
+            row = process_prediction_row(row, all_areas, self.critical_points_collection)
+            processed_data.append(row)
+        
         # Αποθήκευση των αποτελεσμάτων στη MongoDB
-        if prediction_data:
-            self.predictions_collection.insert_many(prediction_data)
-            print(f"[{datetime.now()}] Predictions with name, date, time, and radius_km saved to MongoDB.")
-
+        if processed_data:
+            self.predictions_collection.insert_many(processed_data)
+            print(f"[{datetime.now()}] Predictions with additional data saved to MongoDB.")
+            
+       
