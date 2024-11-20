@@ -1,41 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown'; // import react-markdown for better looking responses
 import {
-  Container, Row, Col, Card, Form, Button, InputGroup, FormControl,
+  Container, Row, Col, Card, Button, InputGroup, FormControl,
 } from 'react-bootstrap';
-import { useRef, useEffect } from 'react';
-
-
+import './chatbot.css';
 
 const Dashboard = () => {
-    const [messages, setMessages] = useState([
-        { sender: 'bot', text: 'Hello! How can I assist you today?' },
-    ]);
-    const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState([
+    {
+      sender: 'bot',
+      text: "Welcome to the Wildfire Safety Assistant! I'm here to provide you with information on wildfire preparedness, prevention strategies, and current weather conditions. Feel free to ask any questions or share your concerns about staying safe during wildfire seasons.",
+    },
+  ]);
+  const [inputText, setInputText] = useState('');
 
-    const messagesEndRef = useRef(null);
+  // State variables to manage suggested questions
+  const [showSuggestedQuestions, setShowSuggestedQuestions] = useState(true);
+  const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+  const messagesEndRef = useRef(null);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    const handleSend = async () => {
-        if (inputText.trim() === '') return;
-  
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (inputText.trim() === '') return;
+
+    // Hide the suggested questions after the first message is sent
+    setHasUserSentMessage(true);
+    setShowSuggestedQuestions(false);
+
     // Add the user's message to the chat
-    setMessages([...messages, { sender: 'user', text: inputText }]);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: 'user', text: inputText },
+      { sender: 'bot', text: 'Typing...', loading: true },
+    ]);
     const userMessage = inputText;
     setInputText('');
 
-    setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: 'bot', text: 'Typing...', loading: true },
-      ]);
-  
     try {
       // Send the user's message to the backend
       const response = await fetch('http://localhost:8000/api/chat', {
@@ -45,28 +53,29 @@ const Dashboard = () => {
         },
         body: JSON.stringify({ message: userMessage }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
-      // Add the bot's response to the chat
+
+      // Replace the 'Typing...' message with the actual reply
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
-          msg.loading
-            ? { sender: 'bot', text: data.reply }
-            : msg
+          msg.loading ? { sender: 'bot', text: data.reply } : msg
         )
       );
     } catch (error) {
       console.error('Error fetching bot response:', error);
-      // Optionally, display an error message in the chat
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: 'bot', text: 'Sorry, something went wrong.' },
-      ]);
+      // Replace the 'Typing...' message with an error message
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.loading
+            ? { sender: 'bot', text: 'Sorry, something went wrong.' }
+            : msg
+        )
+      );
     }
   };
 
@@ -76,12 +85,76 @@ const Dashboard = () => {
     }
   };
 
+  // Function to handle when a suggested question is clicked
+  const handleSuggestedQuestion = (question) => {
+    setInputText(question);
+    handleSend();
+  };
+
+  // Array of suggested questions
+  const suggestedQuestions = [
+    'What is the wildfire risk today?',
+    'How can I prepare my home for a wildfire?',
+    'Are there any active wildfires nearby?',
+    'What are the weather conditions today?',
+    'How do I create an evacuation plan?',
+  ];
+
   return (
     <Container fluid className="p-3">
       <Row className="justify-content-center">
         <Col md={6}>
           <Card>
-            <Card.Header as="h5">Chat with Our Assistant</Card.Header>
+            <Card.Header as="h5">
+              Wildfire Safety Assistant
+            </Card.Header>
+
+            {/* Suggested Questions Section */}
+            {!hasUserSentMessage ? (
+              // Before the user sends a message, show the suggested questions
+              <div style={{ padding: '10px', textAlign: 'center' }}>
+                <p>Here are some common questions:</p>
+                <div className="suggested-questions" style={{ maxHeight: showSuggestedQuestions ? '500px' : '0' }}>
+                  {suggestedQuestions.map((question, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline-secondary"
+                      size="sm"
+                      style={{ margin: '5px' }}
+                      onClick={() => handleSuggestedQuestion(question)}
+                    >
+                      {question}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              // After the user sends a message, show the toggleable text and suggested questions
+              <div style={{ padding: '10px', textAlign: 'center' }}>
+              <p
+                onClick={() => setShowSuggestedQuestions(!showSuggestedQuestions)}
+                style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
+              >
+                {showSuggestedQuestions ? 'Hide common questions ▲' : 'Show common questions ▼'}
+              </p>
+                {showSuggestedQuestions && (
+                  <div>
+                    {suggestedQuestions.map((question, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline-secondary"
+                        size="sm"
+                        style={{ margin: '5px' }}
+                        onClick={() => handleSuggestedQuestion(question)}
+                      >
+                        {question}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <Card.Body style={{ height: '500px', overflowY: 'auto' }}>
               {messages.map((message, idx) => (
                 <div
@@ -109,6 +182,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </Card.Body>
             <Card.Footer>
               <InputGroup>
@@ -126,7 +200,6 @@ const Dashboard = () => {
           </Card>
         </Col>
       </Row>
-      <div ref={messagesEndRef} />
     </Container>
   );
 };

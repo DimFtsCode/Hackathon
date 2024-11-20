@@ -41,20 +41,6 @@ print("NearestNeighbors model built successfully.")
 
 
 
-# def extract_date_and_locations(query):
-#     # Εξαγωγή ημερομηνίας με χρήση regex
-#     date_match = re.search(r"\d{4}-\d{2}-\d{2}", query)
-#     date = date_match.group(0) if date_match else None
-
-#     # Λίστα γνωστών τοποθεσιών (ενημέρωσέ την με τις δικές σου τοποθεσίες)
-#     locations = ["Anthousa", "Dioni", "OtherLocation"]  # Προσάρμοσε αυτή τη λίστα
-#     found_locations = []
-#     for loc in locations:
-#         if loc.lower() in query.lower():
-#             found_locations.append(loc)
-
-#     return date, found_locations
-
 def extract_date(query):
     # Εξαγωγή ημερομηνίας με χρήση regex
     date_match = re.search(r"\d{4}-\d{2}-\d{2}", query)
