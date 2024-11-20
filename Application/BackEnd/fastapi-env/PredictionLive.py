@@ -22,8 +22,7 @@ class PredictionLive:
         self.model = xgb.Booster()
         self.model.load_model(model_path)
         
-        print("PredictionLive: Initialized and connected to MongoDB successfully.")
-
+        
     def transform_data(self, data):
         """
         Μετατρέπει τα δεδομένα σε μορφή έτοιμη για επεξεργασία (με κυκλική αναπαράσταση και μετατροπή κατεύθυνσης ανέμου).
