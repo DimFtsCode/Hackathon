@@ -33,47 +33,14 @@ const Live = () => {
     };
 
     useEffect(() => {
-        const socket = new WebSocket("ws://127.0.0.1:8000/ws");
+        // Αρχική ανάκτηση δεδομένων
+        fetchPredictions();
 
-        socket.onopen = () => {
-            console.log("WebSocket connection established.");
-            fetchPredictions();
-        };
+        // Ρύθμιση polling κάθε 1 λεπτό
+        const intervalId = setInterval(fetchPredictions, 60000); // 60000 ms = 1 λεπτό
 
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                console.log("Message received from WebSocket:", data);
-                if (data.message === "New data available") {
-                    fetchPredictions();
-                }
-            } catch (error) {
-                console.error("Error parsing WebSocket message:", error);
-            }
-        };
-
-        socket.onclose = (event) => {
-            console.warn("WebSocket connection closed:", event);
-            fetchPredictions();
-        };
-
-        socket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            fetchPredictions();
-        };
-
-        const intervalId = setInterval(() => {
-            if (socket.readyState === WebSocket.CLOSED) {
-                console.warn("WebSocket is closed. Fetching predictions...");
-                fetchPredictions();
-            }
-        }, 300000);
-
-        return () => {
-            console.log("Cleaning up WebSocket connection.");
-            clearInterval(intervalId);
-            socket.close();
-        };
+        // Καθαρισμός interval κατά την απομάκρυνση του component
+        return () => clearInterval(intervalId);
     }, []);
 
     const filteredPredictions = (regions) => {

@@ -1,28 +1,57 @@
 from pymongo import MongoClient
 from datetime import datetime
-from MountainsCycle import MountainsCycle  # Εισαγωγή της MountainsCycle
+#from MountainsCycle import MountainsCycle  # Εισαγωγή της MountainsCycle
 import pandas as pd
 import numpy as np
 import xgboost as xgb
 import pytz  # Για μετατροπή ζώνης ώρας
+import csv
 from prediction_utils import process_prediction_row
 
+# Function to read a CSV file and convert it to a list of tuples
+# def csv_to_list_of_tuples(filename):
+#     list_of_tuples = []
+    
+#     # Open the CSV file
+#     with open(filename, mode='r') as file:
+#         # Create a CSV reader object
+#         csv_reader = csv.reader(file)
+        
+#         # Skip the header (first row) if there is one
+#         next(csv_reader)
+        
+#         # Read each row and convert it to a tuple, then add to the list
+#         for row in csv_reader:
+#             # Convert latitude, longitude, and area to appropriate types
+#             name = row[0]
+#             latitude = float(row[1])
+#             longitude = float(row[2])
+#             date = row[3]
+#             time = int(row[4])
+            
+#             # Append the tuple to the list
+#             list_of_tuples.append((category, latitude, longitude, description, area))
+    
+#     return list_of_tuples
 
-class PredictionLive:
-    def __init__(self, mongo_uri, api_key):
+
+class PredictionTestData:
+    def __init__(self, mongo_uri):
         self.mongo_client = MongoClient(mongo_uri)
         self.db = self.mongo_client["Weather"]
-        self.predictions_collection = self.db["PredictionLive"]
+        self.predictions_collection = self.db["PredictionTestData"]
         self.critical_points_collection = self.db["CriticalInfra"]
-        self.mountains_cycle = MountainsCycle(api_key)
-        print("PredictionLive: Initialized and connected to MongoDB successfully.")
 
-        model_path = "D:/desktop/Hackathon/Project/DimiScripts/Models/xgboost_fire_model.json"        
+        # self.mountains_cycle = MountainsCycle(api_key)
+        print("PredictionTestData: Initialized and connected to MongoDB successfully.")
+
+        model_path = "D:/desktop/Hackathon/Project/DimiScripts/Models/xgboost_fire_model_demo.json"      
         # Φόρτωση του XGBoost μοντέλου
         self.model = xgb.Booster()
         self.model.load_model(model_path)
         
-        
+        print("PredictionTestData: Initialized and connected to MongoDB successfully.")
+
     def transform_data(self, data):
         """
         Μετατρέπει τα δεδομένα σε μορφή έτοιμη για επεξεργασία (με κυκλική αναπαράσταση και μετατροπή κατεύθυνσης ανέμου).
@@ -94,51 +123,33 @@ class PredictionLive:
         predictions = self.model.predict(dmatrix)
         return predictions
     
-    def fetch_and_process(self):
-        """
-        Λήψη δεδομένων από την MountainsCycle, μετασχηματισμός, πρόβλεψη και αποθήκευση στη MongoDB.
-        """
-        # Λήψη δεδομένων από την MountainsCycle
-        weather_data = self.mountains_cycle.fetch_all_weather_data()
-
-        # Δημιουργία DataFrame με τα αρχικά δεδομένα
-        df_original = pd.DataFrame(weather_data)  # Διατήρηση των πρωτότυπων πεδίων όπως 'name', 'date', 'time', 'radius_km'
-
-        # Μετατροπή UTC χρόνου σε τοπική ώρα
-        df_original['time'] = df_original.apply(
-            lambda row: self.convert_utc_to_local(row['time'], row['date']),
-            axis=1
-        )
-
-        # Μετατροπή δεδομένων σε μορφή που χρειάζεται το μοντέλο
-        transformed_data = self.transform_data(weather_data)
-
-        # Προσθέστε το πεδίο wind_dir στη σωστή μορφή για το prediction
-        transformed_data = transformed_data.rename(columns={"wind_dir_degrees": "wind_dir"})
-
-        # Εκτέλεση πρόβλεψης
+    def fetch_and_process(self, transformed_data):
+       
         predictions = self.predict(transformed_data)
 
         # Προσθήκη των προβλέψεων και των επιπλέον πεδίων στα δεδομένα
         transformed_data['prediction'] = predictions
-        transformed_data['name'] = df_original['name']
-        transformed_data['date'] = df_original['date']
-        transformed_data['time'] = df_original['time']  # Τοπική ώρα
-        transformed_data['radius_km'] = df_original['radius_km']
+        transformed_data['name'] = transformed_data['name']
+        transformed_data['date'] = transformed_data['date']
+        transformed_data['time'] = transformed_data['time']  # Τοπική ώρα
+        # transformed_data['radius_km'] = transformed_data['radius_km']
 
-        # transformed_data['prediction'] = np.random.rand(len(transformed_data))
-        
         # Αναδιάταξη των στηλών στη σωστή σειρά για αποθήκευση
         transformed_data = transformed_data[
-            ['name', 'date', 'time', 'latitude', 'longitude', 'radius_km', 'temperature', 'wind_speed', 'wind_dir',
+            ['name', 'date', 'time', 'latitude', 'longitude', 'temperature', 'wind_speed', 'wind_dir',
             'humidity', 'visibility', 'day_cos', 'day_sin', 'hour_cos', 'hour_sin', 'prediction']
         ]
+        
+        # transformed_data['time'] = transformed_data.apply(
+        #     lambda row: self.convert_utc_to_local(row['time'], row['date']),
+        #     axis=1
+        # )
 
         # Μετατροπή σε λίστα από dictionaries για αποθήκευση στη MongoDB
         prediction_data = transformed_data.to_dict(orient='records')
         
-        # Ορισμός της μεταβλητής all_areas
-        all_areas = df_original[['name', 'latitude', 'longitude']].drop_duplicates()
+        all_areas = transformed_data[['name', 'latitude', 'longitude']].drop_duplicates()
+
     
         # κλήση της συνάρτησης process_prediction_row για κάθε γραμμή του DataFrame
         processed_data = []
@@ -150,5 +161,4 @@ class PredictionLive:
         if processed_data:
             self.predictions_collection.insert_many(processed_data)
             print(f"[{datetime.now()}] Predictions with additional data saved to MongoDB.")
-            
-       
+

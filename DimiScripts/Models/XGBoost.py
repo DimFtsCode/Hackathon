@@ -63,7 +63,7 @@ def evaluate_model(model, dtest, y_test, threshold=0.8):
 def main():
     # Διαδρομή δεδομένων και αρχείου μοντέλου
     data_path = os.path.join(".", "Dimiscripts", "Datasets", "train_data.csv")
-    model_path = os.path.join(".", "Dimiscripts", "Models", "xgboost_fire_model.json")
+    model_path = os.path.join(".", "Dimiscripts", "Models", "xgboost_fire_model_demo.json")
 
     # Φόρτωση και προετοιμασία δεδομένων
     X, y = load_data(data_path)
