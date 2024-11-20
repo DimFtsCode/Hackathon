@@ -3,6 +3,9 @@
 .venv/Scripts/python.exe
 .venv/pyenv.cfg
 
+# ignore all the csv files
+*.csv
+
 # Αγνόηση του φακέλου Datasets μέσα στον Dimiscripts
 Dimiscripts/Datasets/
 

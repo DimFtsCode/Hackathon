@@ -130,6 +130,7 @@ model = initialize_llm()
 @app.post("/api/chat")
 async def chat_endpoint(chat_message: ChatMessage):
     user_message = chat_message.message
+    
     # Call your LLM script here and get the response
-    bot_reply = await llm_response(model, user_message)
+    bot_reply = llm_response(model, user_message)
     return {"reply": bot_reply}
