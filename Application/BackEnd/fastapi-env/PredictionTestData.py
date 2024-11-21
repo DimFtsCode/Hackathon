@@ -7,34 +7,7 @@ import xgboost as xgb
 import pytz  # Για μετατροπή ζώνης ώρας
 import csv
 from prediction_utils import process_prediction_row
-
-# Function to read a CSV file and convert it to a list of tuples
-# def csv_to_list_of_tuples(filename):
-#     list_of_tuples = []
-    
-#     # Open the CSV file
-#     with open(filename, mode='r') as file:
-#         # Create a CSV reader object
-#         csv_reader = csv.reader(file)
-        
-#         # Skip the header (first row) if there is one
-#         next(csv_reader)
-        
-#         # Read each row and convert it to a tuple, then add to the list
-#         for row in csv_reader:
-#             # Convert latitude, longitude, and area to appropriate types
-#             name = row[0]
-#             latitude = float(row[1])
-#             longitude = float(row[2])
-#             date = row[3]
-#             time = int(row[4])
-            
-#             # Append the tuple to the list
-#             list_of_tuples.append((category, latitude, longitude, description, area))
-    
-#     return list_of_tuples
-
-
+import os
 class PredictionTestData:
     def __init__(self, mongo_uri):
         self.mongo_client = MongoClient(mongo_uri)
@@ -45,7 +18,8 @@ class PredictionTestData:
         # self.mountains_cycle = MountainsCycle(api_key)
         print("PredictionTestData: Initialized and connected to MongoDB successfully.")
 
-        model_path = "C:/Users/ziziz/Desktop/Hackathon/DimiScripts/Models/xgboost_fire_model_demo.json"      
+        current_dir = os.path.dirname(__file__)  
+        model_path = os.path.join(current_dir, "Models", "xgboost_fire_model_demo.json")         
         # Φόρτωση του XGBoost μοντέλου
         self.model = xgb.Booster()
         self.model.load_model(model_path)

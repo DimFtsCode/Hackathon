@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mongodbendpoints import router as weather_router
 from PredictionLive import PredictionLive
 from PredictionTestData import PredictionTestData
-from Gemini_Bot import initialize_llm, llm_response
+# from Gemini_Bot import initialize_llm, llm_response
 import asyncio
 from datetime import datetime, timedelta
 import pandas as pd
@@ -209,17 +209,17 @@ class ChatMessage(BaseModel):
 
 
 # Αρχικοποίηση του LLM
-model = initialize_llm()
+# model = initialize_llm()
 
 # Endpoint για την απάντηση του chatbot
-@app.post("/api/chat")
-async def chat_endpoint(chat_message: ChatMessage):
-    """
-    Επιστρέφει απάντηση από το LLM βάσει του εισερχόμενου μηνύματος.
-    """
-    user_message = chat_message.message
+# @app.post("/api/chat")
+# async def chat_endpoint(chat_message: ChatMessage):
+#     """
+#     Επιστρέφει απάντηση από το LLM βάσει του εισερχόμενου μηνύματος.
+#     """
+#     user_message = chat_message.message
     
-    # Call your LLM script here and get the response
-    bot_reply = llm_response(model, user_message)
-    return {"reply": bot_reply}
+#     # Call your LLM script here and get the response
+#     bot_reply = llm_response(model, user_message)
+#     return {"reply": bot_reply}
 
