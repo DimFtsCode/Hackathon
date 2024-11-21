@@ -208,10 +208,10 @@ class ChatMessage(BaseModel):
     message: str
 
 
-# Αρχικοποίηση του LLM
+#Αρχικοποίηση του LLM
 model = initialize_llm()
 
-# Endpoint για την απάντηση του chatbot
+#Endpoint για την απάντηση του chatbot
 @app.post("/api/chat")
 async def chat_endpoint(chat_message: ChatMessage):
     """

@@ -6,6 +6,7 @@ import numpy as np
 import xgboost as xgb
 import pytz  # Για μετατροπή ζώνης ώρας
 from prediction_utils import process_prediction_row
+import os
 
 
 class PredictionLive:
@@ -17,7 +18,8 @@ class PredictionLive:
         self.mountains_cycle = MountainsCycle(api_key)
         print("PredictionLive: Initialized and connected to MongoDB successfully.")
 
-        model_path = "C:/Users/ziziz/Desktop/Hackathon/DimiScripts/Models/xgboost_fire_model.json"        
+        current_dir = os.path.dirname(__file__)  
+        model_path = os.path.join(current_dir, "Models", "xgboost_fire_model.json")       
         # Φόρτωση του XGBoost μοντέλου
         self.model = xgb.Booster()
         self.model.load_model(model_path)
