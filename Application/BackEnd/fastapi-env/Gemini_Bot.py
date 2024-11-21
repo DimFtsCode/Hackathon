@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 import google.generativeai as palm
 import re
 import ast
+import json
 
 # MongoDB configuration
 mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
@@ -12,7 +13,7 @@ mongo_client = MongoClient(mongo_uri)
 
 # Access the Weather database and RAG_DATA collection
 db = mongo_client["Weather"]
-weather_collection = db["Combined_data"]
+weather_collection = db["COMBINED_DATA"]
 
 print("Connected to MongoDB successfully.")
 
@@ -101,21 +102,61 @@ def format_results(results):
             f"Wind Direction: {result.get('wind_dir', 'N/A')}°,"
             f"Humidity: {result.get('humidity', 'N/A')}%,"
             f"Visibility: {result.get('visibility', 'N/A')} km,"
-            f"Fire: {'Yes' if result.get('fire', 0) == 1 else 'No'}\n"
+            f"Fire: {'Yes' if result.get('fire', 0) == 1 else 'No'}"
         )
     return "\n\n".join(formatted_results)
 
+def create_pipeline(response):
+    raw_pipeline = response.text
+    
+    # Step 1: Remove triple backticks and 'json' prefix
+    if raw_pipeline.startswith("```json"):
+        raw_pipeline = raw_pipeline[7:]  # Remove the first '```json'
+    if raw_pipeline.endswith("```\n"):
+        raw_pipeline = raw_pipeline[:-4]  # Remove the last '```'
+    
+    # Step 1: Replace unquoted keys ($match, $group, etc.) with quoted keys
+    cleaned_pipeline = re.sub(r'(\s*)(\$[a-zA-Z0-9_]+|[a-zA-Z0-9_]+):', r'\1"\2":', raw_pipeline)    
+    
+    try:
+        pipeline = json.loads(cleaned_pipeline)
+        print("Cleaned Pipeline:", pipeline)
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")  
+    return pipeline 
 
 def generate_text(user_message, model):
     """
     Combines user query with retrieved results and uses the Gemini API to generate a response.
     """
-    results = query_results(user_message)
-    print(f"Query Results: {results}")
+    # results = query_results(user_message)
+    # #print(f"Query Results: {results}")
 
-    # Format results for LLM
-    results_str = format_results(results)
+    # # Format results for LLM
+    # results_str = format_results(results)
+    # print("results_str: ",results_str)
 
+    prompt = (
+            f"You will receive a user query, and you will need to extract usefull information out of it. "
+            f"You need to create a relevant query for a mongodb database that can extract the information that the user is asking for. "
+            f"The database contains weather data about different locations and dates, and also a column about whether there was a fire or not"
+            f"DATABASE DOCUMENT EXAMPLE: ('_id': ObjectId('673f3920759ebea332dfaec4'), 'name': 'Aigeirouses', 'latitude': 38.07, 'longitude': 23.159, 'date': '2020-01-01', 'time': 0, 'temperature': 5, 'wind_speed': 6, 'wind_dir': 360, 'humidity': 54, 'visibility': 10, 'fire': 0)"
+            f"They can ask you questions about weather conditions of specific locations and dates. "
+            f"Create a pipeline that I can use with the 'aggregate' function of mongodb to extract the information that the user is asking for. The pipeline should return the whole documents that match the query."
+            f"DO NOT include 'javascript' or 'python' before you answer"
+            f"If the query is irrelevant to the database purpose, answer with \"NONE\" "
+            f"USER QUERY: {user_message}\n"
+            f"ANSWER:"
+        )
+
+    pipeline = create_pipeline(model.generate_content(prompt))
+    
+    print("Mongo DB Pipeline: ",pipeline)
+    
+    result = weather_collection.aggregate(pipeline)
+    relevant_data = str([doc for doc in result])
+    
+    #print("relevant_data: ",relevant_data)
     prompt = (
         f"You are a helpful assistant in a government website that helps citizens take precautions against wildfires. "
         f"A user can ask you what measures to take in case of a wildfire or to prevent one. "
@@ -124,11 +165,10 @@ def generate_text(user_message, model):
         f"If the query is irrelevant to the website's purpose, advise the user to ask a different question. "
         f"Provide the answer in a user-friendly markdown format. Do not create markdown tables."
         f"QUERY: {user_message}\n"
-        f"RELEVANT DATA:\n{results_str}\n"
+        f"RELEVANT DATA:\n{relevant_data}\n"
         f"ANSWER:"
     )
     
-    print(results_str)
     response = model.generate_content(prompt)
     return response.text
 
