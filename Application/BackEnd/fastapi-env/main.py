@@ -75,8 +75,8 @@ async def fetch_testdata_periodically():
             # Ενημέρωση ημερομηνίας
             current_date = datetime.strptime(str(date), "%Y-%m-%d").date()
             current_date += timedelta(days=newday)
-            print(f"Processing date: {current_date}")
-            print(f"Timestamp index: {index}, New day increment: {newday}")
+            #print(f"Processing date: {current_date}")
+            #print(f"Timestamp index: {index}, New day increment: {newday}")
 
             # Ανάκτηση δεδομένων από MongoDB
             documents = db["TestData"].find({
@@ -84,12 +84,12 @@ async def fetch_testdata_periodically():
                 "time": int(timestamp[index])
             })
             weather_data_list = list(documents)  # Μετατροπή σε λίστα
-            print(f"Fetched data: {weather_data_list}")
+            #print(f"Fetched data: {weather_data_list}")
 
             # Μετατροπή δεδομένων σε DataFrame
             if weather_data_list:
                 weather_data_df = pd.DataFrame(weather_data_list)
-                print(f"Weather DataFrame: \n{weather_data_df}")
+                #print(f"Weather DataFrame: \n{weather_data_df}")
 
                 # Επεξεργασία δεδομένων μέσω του fetch_and_process
                 predictor.fetch_and_process(weather_data_df)
