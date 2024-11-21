@@ -2,8 +2,10 @@
 
 * I am in Avlonas and the temperature is above 30 degrees. Where there any fires in Aigeirouses with similar temperatures? And if yes, when?
 * When was the highest temperature of June 22 in Avlonas recorded?
+* Did Aigeirouses have a fire in the summer of 2021?
+* 1. I live in Aigeirouses. Was July 2021 a hot month?
+  2. Where there any fires in that month?
 * 
-
 
 # Some facts about the dataset that the AI assistant uses:
 

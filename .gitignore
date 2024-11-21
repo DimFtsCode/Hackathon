@@ -6,6 +6,8 @@
 # ignore all the csv files
 *.csv
 
+*.pyc
+
 # ignore __pycache__ folders
 Application/BackEnd/fastapi-env/__pycache__/ 
 
