@@ -4,6 +4,7 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 import google.generativeai as palm
 import re
+import ast
 
 # MongoDB configuration
 mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
@@ -11,13 +12,15 @@ mongo_client = MongoClient(mongo_uri)
 
 # Access the Weather database and RAG_DATA collection
 db = mongo_client["Weather"]
-weather_collection = db["RAG_DATA"]
+weather_collection = db["Combined_data"]
 
 print("Connected to MongoDB successfully.")
 
 # Initialize the embedding model
 embedding_model = SentenceTransformer("paraphrase-MiniLM-L6-v2")
 print("Loaded SentenceTransformer model successfully.")
+
+
 
 def get_embedding(text):
     if not text.strip():
@@ -26,17 +29,19 @@ def get_embedding(text):
     embedding = embedding_model.encode(text)
     return embedding.tolist()
 
-
 def extract_date_and_locations(query):
-    """
-    Extracts date and locations from the user query.
-    """
+    # Εξαγωγή ημερομηνίας με χρήση regex
     date_match = re.search(r"\d{4}-\d{2}-\d{2}", query)
-    date_filter = date_match.group(0) if date_match else None
+    date = date_match.group(0) if date_match else None
 
-    # Extract location names (simple example, can be enhanced)
-    location_filters = re.findall(r"[A-Za-z]+", query)  # Modify for specific location patterns
-    return date_filter, location_filters
+    # Λίστα γνωστών τοποθεσιών (ενημέρωσέ την με τις δικές σου τοποθεσίες)
+    locations = ["Avlonas"]  # Προσάρμοσε αυτή τη λίστα
+    found_locations = []
+    for loc in locations:
+        if loc.lower() in query.lower():
+            found_locations.append(loc)
+
+    return date, found_locations
 
 def query_results(query):
     """
@@ -72,12 +77,14 @@ def query_results(query):
     ]
 
     # Execute the aggregation pipeline
-    results_cursor = db.Hackathon.aggregate(pipeline)
+    results_cursor = db.Combined_data.aggregate(pipeline)
     
     # Convert the cursor to a list
     results = list(results_cursor)
-    print(f"Query Results: {results}")
+    #print(f"Query Results: {results}")
     return results
+    
+   
 
 def format_results(results):
     """
@@ -86,15 +93,15 @@ def format_results(results):
     formatted_results = []
     for result in results:
         formatted_results.append(
-            f"Location: {result.get('name', 'Unknown')}\n"
-            f"Date: {result.get('date', 'Unknown')}\n"
-            f"Time: {result.get('time', 'Unknown')}\n"
-            f"Temperature: {result.get('temperature', 'N/A')}°C\n"
-            f"Wind Speed: {result.get('wind_speed', 'N/A')} km/h\n"
-            f"Wind Direction: {result.get('wind_dir', 'N/A')}°\n"
-            f"Humidity: {result.get('humidity', 'N/A')}%\n"
-            f"Visibility: {result.get('visibility', 'N/A')} km\n"
-            f"Fire: {'Yes' if result.get('fire', 0) == 1 else 'No'}"
+            f"Location: {result.get('name', 'Unknown')},"
+            f"Date: {result.get('date', 'Unknown')},"
+            f"Time: {result.get('time', 'Unknown')},"
+            f"Temperature: {result.get('temperature', 'N/A')}°C,"
+            f"Wind Speed: {result.get('wind_speed', 'N/A')} km/h,"
+            f"Wind Direction: {result.get('wind_dir', 'N/A')}°,"
+            f"Humidity: {result.get('humidity', 'N/A')}%,"
+            f"Visibility: {result.get('visibility', 'N/A')} km,"
+            f"Fire: {'Yes' if result.get('fire', 0) == 1 else 'No'}\n"
         )
     return "\n\n".join(formatted_results)
 
