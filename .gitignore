@@ -6,6 +6,9 @@
 # ignore all the csv files
 *.csv
 
+# ignore __pycache__ folders
+Application/BackEnd/fastapi-env/__pycache__/ 
+
 # Αγνόηση του φακέλου Datasets μέσα στον Dimiscripts
 Dimiscripts/Datasets/
 

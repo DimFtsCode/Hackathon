@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 import os
 import pandas as pd
-from sentence_transformers import SentenceTransformer
 import google.generativeai as palm
 import re
 import ast
@@ -13,98 +12,35 @@ mongo_client = MongoClient(mongo_uri)
 
 # Access the Weather database and RAG_DATA collection
 db = mongo_client["Weather"]
-weather_collection = db["COMBINED_DATA"]
+weather_collection = db["Combined_data"]
 
 print("Connected to MongoDB successfully.")
 
-# Initialize the embedding model
-embedding_model = SentenceTransformer("paraphrase-MiniLM-L6-v2")
-print("Loaded SentenceTransformer model successfully.")
 
-
-
-def get_embedding(text):
-    if not text.strip():
-        print("Attempted to get embedding for empty text.")
-        return []
-    embedding = embedding_model.encode(text)
-    return embedding.tolist()
-
-def extract_date_and_locations(query):
-    # Εξαγωγή ημερομηνίας με χρήση regex
-    date_match = re.search(r"\d{4}-\d{2}-\d{2}", query)
-    date = date_match.group(0) if date_match else None
-
-    # Λίστα γνωστών τοποθεσιών (ενημέρωσέ την με τις δικές σου τοποθεσίες)
-    locations = ["Avlonas"]  # Προσάρμοσε αυτή τη λίστα
-    found_locations = []
-    for loc in locations:
-        if loc.lower() in query.lower():
-            found_locations.append(loc)
-
-    return date, found_locations
-
-def query_results(query):
-    """
-    Generates an embedding for the query and performs a vector similarity search in MongoDB
-    using the Atlas Search feature.
-    """
-    # Create the query embedding
-    query_embedding = get_embedding(query)
-    #print(f"Query Embedding: {query_embedding}")
-
-    # Extract date and locations from the query
-    date_filter, location_filters = extract_date_and_locations(query)
-
-    # Create filter conditions
-    filter_conditions = {}
-    if date_filter:
-        filter_conditions['date'] = date_filter
-    if location_filters:
-        filter_conditions['name'] = {'$in': location_filters}
-    print(f"Filter Conditions: {filter_conditions}")
-
-    # Vector similarity search pipeline
-    pipeline = [
-        {
-            "$vectorSearch": {
-                "index": "vector_index",
-                "path": "embedding",
-                "queryVector": query_embedding,
-                "numCandidates": 150,
-                "limit": 5
-            }
-        }
-    ]
-
-    # Execute the aggregation pipeline
-    results_cursor = db.Combined_data.aggregate(pipeline)
-    
-    # Convert the cursor to a list
-    results = list(results_cursor)
-    #print(f"Query Results: {results}")
-    return results
-    
-   
-
-def format_results(results):
-    """
-    Converts MongoDB query results into a human-readable text format for the LLM.
-    """
-    formatted_results = []
-    for result in results:
-        formatted_results.append(
-            f"Location: {result.get('name', 'Unknown')},"
-            f"Date: {result.get('date', 'Unknown')},"
-            f"Time: {result.get('time', 'Unknown')},"
-            f"Temperature: {result.get('temperature', 'N/A')}°C,"
-            f"Wind Speed: {result.get('wind_speed', 'N/A')} km/h,"
-            f"Wind Direction: {result.get('wind_dir', 'N/A')}°,"
-            f"Humidity: {result.get('humidity', 'N/A')}%,"
-            f"Visibility: {result.get('visibility', 'N/A')} km,"
-            f"Fire: {'Yes' if result.get('fire', 0) == 1 else 'No'}"
-        )
-    return "\n\n".join(formatted_results)
+# def format_results(results):
+#     """
+#     Converts MongoDB query results into a human-readable text format for the LLM.
+#     """
+#     try:
+#         results = ast.literal_eval(results)
+#     except Exception as e:
+#         print(f"Error parsing results: {e}")
+#         results = []   
+         
+#     formatted_results = []
+#     for result in results:
+#         formatted_results.append(
+#             f"Location: {result.get('name', 'Unknown')},"
+#             f"Date: {result.get('date', 'Unknown')},"
+#             f"Time: {result.get('time', 'Unknown')},"
+#             f"Temperature: {result.get('temperature', 'N/A')}°C,"
+#             f"Wind Speed: {result.get('wind_speed', 'N/A')} km/h,"
+#             f"Wind Direction: {result.get('wind_dir', 'N/A')}°,"
+#             f"Humidity: {result.get('humidity', 'N/A')}%,"
+#             f"Visibility: {result.get('visibility', 'N/A')} km,"
+#             f"Fire: {'Yes' if result.get('fire', 0) == 1 else 'No'}"
+#         )
+#     return "\n\n".join(formatted_results)
 
 def create_pipeline(response):
     raw_pipeline = response.text
@@ -129,13 +65,6 @@ def generate_text(user_message, model):
     """
     Combines user query with retrieved results and uses the Gemini API to generate a response.
     """
-    # results = query_results(user_message)
-    # #print(f"Query Results: {results}")
-
-    # # Format results for LLM
-    # results_str = format_results(results)
-    # print("results_str: ",results_str)
-
     prompt = (
             f"You will receive a user query, and you will need to extract usefull information out of it. "
             f"You need to create a relevant query for a mongodb database that can extract the information that the user is asking for. "
@@ -155,13 +84,15 @@ def generate_text(user_message, model):
     if "NO_DATA" in raw_pipeline.text:
         relevant_data = "NONE"
     else:
-        print("Creating pipeline...")
         pipeline = create_pipeline(model.generate_content(prompt))
         result = weather_collection.aggregate(pipeline)
         relevant_data = str([doc for doc in result])
         
     
     print("relevant_data: ",relevant_data)
+        
+    print("relevant_data type: ",type(relevant_data))
+    #print("relevant data : ", format_results(relevant_data))
     prompt = (
         f"You are a helpful assistant in a government website that helps citizens take precautions against wildfires. "
         f"A user can ask you what measures to take in case of a wildfire or to prevent one. "
