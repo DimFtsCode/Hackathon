@@ -1,7 +1,7 @@
 import math
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    R = 6371.0  # Ακτίνα της Γης σε χιλιόμετρα
+    R = 6371.0  # Earth's radius in kilometers
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)
@@ -21,7 +21,7 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
         math.sin(phi1) * math.cos(phi2) * math.cos(delta_lambda)
     bearing = math.atan2(x, y)
     bearing = math.degrees(bearing)
-    bearing = (bearing + 360) % 360  # Μετατροπή σε εύρος 0-360
+    bearing = (bearing + 360) % 360  # Convert to range 0-360
     return bearing
 
 def process_prediction_row(row, all_areas, critical_points_collection):
@@ -30,7 +30,7 @@ def process_prediction_row(row, all_areas, critical_points_collection):
     current_lat = row['latitude']
     current_lon = row['longitude']
 
-    # Κοντινότερο drone, fire station και police station
+    # Nearest drone, fire station, and police station
     nearest_drone = None
     nearest_fire_station = None
     nearest_police_station = None
@@ -38,7 +38,7 @@ def process_prediction_row(row, all_areas, critical_points_collection):
     min_fire_station_distance = float('inf')
     min_police_station_distance = float('inf')
 
-    # Εύρεση κρίσιμων σημείων
+    # Find critical points
     critical_points_cursor = critical_points_collection.find({})
     for cp in critical_points_cursor:
         cp_lat = cp['latitude']
@@ -57,39 +57,39 @@ def process_prediction_row(row, all_areas, critical_points_collection):
 
     if prediction_value > 0.80:
         message = (
-            "Υψηλός κίνδυνος πυρκαγιάς. "
-            "Συνιστάται άμεση λήψη μέτρων πρόληψης, όπως η απομάκρυνση εύφλεκτων υλικών "
-            "και η ενημέρωση των αρμόδιων αρχών για ενίσχυση της επιτήρησης.\n"
+            "High wildfire risk. "
+            "Immediate preventive measures are recommended, such as removing flammable materials "
+            "and notifying the relevant authorities to enhance surveillance.\n"
         )
 
-        # Drone ενεργοποίηση
+        # Drone activation
         if nearest_drone:
-            travel_time = min_drone_distance / 50.0  # Υποθέτουμε ταχύτητα drone 50 km/h
+            travel_time = min_drone_distance / 50.0  # Assuming drone speed 50 km/h
             bearing = calculate_bearing(
                 nearest_drone['latitude'], nearest_drone['longitude'],
                 current_lat, current_lon
             )
             message += (
-                f" Ενεργοποίηση drone από την περιοχή '{nearest_drone['description']}'. "
-                f"Χρόνος άφιξης: {round(travel_time * 60, 2)} λεπτά. "
-                f"Κατεύθυνση: {round(bearing, 2)} μοίρες.\n"
+                f" Drone activation from the area '{nearest_drone['description']}'. "
+                f"Arrival time: {round(travel_time * 60, 2)} minutes. "
+                f"Direction: {round(bearing, 2)} degrees.\n"
             )
 
-        # Fire Station επιτήρηση
+        # Fire Station response
         if nearest_fire_station:
             message += (
-                f"1) Το Πυροσβεστικό Σώμα από τον σταθμό '{nearest_fire_station['description']}' "
-                f"να επιτηρήσει άμεσα την περιοχή.\n"
+                f"1) Fire Station at '{nearest_fire_station['description']}' "
+                f"should immediately monitor the area.\n"
             )
 
-        # Police Station επιτήρηση
+        # Police Station response
         if nearest_police_station:
             message += (
-                f"2) Το Αστυνομικό Τμήμα από την περιοχή '{nearest_police_station['description']}' "
-                f"να προστατεύσει άμεσα την περιοχή.\n"
+                f"2) Police Station at '{nearest_police_station['description']}' "
+                f"should immediately secure the area.\n"
             )
 
-        # Εξετάζουμε κρίσιμα σημεία (category = 3) εντός 5 χλμ
+        # Critical points (category = 3) within 5 km
         critical_points_cursor = critical_points_collection.find({'category': 3})
         for cp in critical_points_cursor:
             cp_lat = cp['latitude']
@@ -97,44 +97,43 @@ def process_prediction_row(row, all_areas, critical_points_collection):
             distance = haversine_distance(current_lat, current_lon, cp_lat, cp_lon)
 
             if distance <= 5.0 and nearest_drone:
-                travel_time = distance / 50.0  # Υποθέτουμε ταχύτητα drone 50 km/h
+                travel_time = distance / 50.0  # Assuming drone speed 50 km/h
                 bearing = calculate_bearing(
                     nearest_drone['latitude'], nearest_drone['longitude'],
                     cp_lat, cp_lon
                 )
                 message += (
-                    f"3)Προστασία κρίσιμων σημείων, όπως το σχολείο/νοσοκομείο στην περιοχή "
-                    f"'{cp['description']}'. Ενεργοποίηση drone από την περιοχή "
-                    f"'{nearest_drone['description']}' για επιτήρηση. "
-                    f"Χρόνος άφιξης: {round(travel_time * 60, 2)} λεπτά. "
-                    f"Κατεύθυνση: {round(bearing, 2)} μοίρες.\n"
+                    f"3) Protect critical points, such as the school/hospital in the area "
+                    f"'{cp['description']}'. Activate drone from the area "
+                    f"'{nearest_drone['description']}' for surveillance. "
+                    f"Arrival time: {round(travel_time * 60, 2)} minutes. "
+                    f"Direction: {round(bearing, 2)} degrees.\n"
                 )
 
     elif 0.80 >= prediction_value >= 0.40:
         message = (
-            "Μέτριος κίνδυνος πυρκαγιάς. "
-            "Συνιστάται ευαισθητοποίηση της κοινότητας για προληπτικά μέτρα και "
-            "ενίσχυση της επιτήρησης.\n"
+            "Moderate wildfire risk. "
+            "Community awareness for preventive measures is recommended, along with enhanced surveillance.\n"
         )
 
-        # Drone ενεργοποίηση
+        # Drone activation
         if nearest_drone:
-            travel_time = min_drone_distance / 50.0  # Υποθέτουμε ταχύτητα drone 50 km/h
+            travel_time = min_drone_distance / 50.0  # Assuming drone speed 50 km/h
             bearing = calculate_bearing(
                 nearest_drone['latitude'], nearest_drone['longitude'],
                 current_lat, current_lon
             )
             message += (
-                f" Ενεργοποίηση drone από την περιοχή '{nearest_drone['description']}'. "
-                f"Χρόνος άφιξης: {round(travel_time * 60, 2)} λεπτά. "
-                f"Κατεύθυνση: {round(bearing, 2)} μοίρες.\n"
+                f" Drone activation from the area '{nearest_drone['description']}'. "
+                f"Arrival time: {round(travel_time * 60, 2)} minutes. "
+                f"Direction: {round(bearing, 2)} degrees.\n"
             )
 
     else:
         message = (
-            "Χαμηλός κίνδυνος πυρκαγιάς. \n"
+            "Low wildfire risk.\n"
         )
 
-    # Επιστροφή του μηνύματος
+    # Return the message
     row['message'] = message
     return row

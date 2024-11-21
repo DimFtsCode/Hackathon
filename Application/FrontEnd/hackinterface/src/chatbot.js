@@ -191,8 +191,13 @@ const Dashboard = () => {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyUp={handleKeyPress}
+                  style={{ height: '100%' }} // Διασφαλίζει ότι το FormControl έχει το σωστό ύψος
                 />
-                <Button variant="primary" onClick={handleSend}>
+                <Button
+                  variant="primary"
+                  onClick={handleSend}
+                  style={{ height: '100%' }} // Διασφαλίζει ότι το Button έχει το ίδιο ύψος
+                >
                   Send
                 </Button>
               </InputGroup>

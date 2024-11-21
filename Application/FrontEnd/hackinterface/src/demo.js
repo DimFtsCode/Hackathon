@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Tabs, Tab, Card, Spinner } from 'react-bootstrap';
+import { Container, Tabs, Tab, Card, Spinner, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./live.css";
 
 const Demo = () => {
     const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const [openReports, setOpenReports] = useState({});
+    const [reloadKey, setReloadKey] = useState(Date.now()); // Initialize with a timestamp to trigger the first load
 
     const northRegions = [
         "Anthousa", "Melissia", "Vrilissia", "Kifisia",
@@ -32,12 +35,18 @@ const Demo = () => {
         }
     };
 
+    const reloadIframe = () => {
+        setReloadKey(Date.now()); // Update reloadKey to force re-render of the iframe
+    };
+
     useEffect(() => {
-        // Αρχική ανάκτηση δεδομένων
         fetchPredictions();
 
         // Ρύθμιση polling κάθε 1 λεπτό
-        const intervalId = setInterval(fetchPredictions, 5000); // 5000 ms = 5 sec
+        const intervalId = setInterval(() => {
+            fetchPredictions();
+            reloadIframe(); // Trigger iframe refresh
+          }, 30000); // 60000 ms = 1 λεπτό
 
         // Καθαρισμός interval κατά την απομάκρυνση του component
         return () => clearInterval(intervalId);
@@ -48,7 +57,7 @@ const Demo = () => {
     };
 
     const renderFormattedMessage = (message) => {
-        const lines = message.split("\n").filter(line => line.trim() !== ""); // Χωρισμός γραμμών
+        const lines = message.split("\n").filter(line => line.trim() !== "");
         return (
             <ul>
                 {lines.map((line, index) => (
@@ -60,11 +69,26 @@ const Demo = () => {
         );
     };
 
+    const toggleReport = (id) => {
+        setOpenReports((prev) => ({
+            ...prev,
+            [id]: !prev[id],
+        }));
+    };
+
+    const getButtonVariant = (predictionValue) => {
+        if (predictionValue <= 0.4) return "primary"; // Blue
+        if (predictionValue <= 0.8) return "warning"; // Yellow
+        return "danger"; // Red
+    };
+
+    const getButtonLabel = (isOpen) => (isOpen ? "Hide Report" : "Show Report");
+
     return (
         <Container 
             className="mt-5 border rounded p-3"
             style={{
-                backgroundColor: "rgba(128, 128, 128, 1)", // Grey with full opacity
+                backgroundColor: "rgba(128, 128, 128, 1)",
                 border: "1px solid rgba(0, 0, 0, 0.1)", 
                 backdropFilter: "blur(10px)"
             }}
@@ -77,7 +101,6 @@ const Demo = () => {
                 </div>
             ) : (
                 <Tabs defaultActiveKey="north" id="region-tabs" className="mb-3">
-                    {/* Tab for North Regions */}
                     <Tab eventKey="north" title="North Regions">
                         {filteredPredictions(northRegions).map((prediction) => (
                             <Card className="mb-4" key={prediction._id}>
@@ -87,8 +110,6 @@ const Demo = () => {
                                         {prediction.date} {prediction.time}
                                     </Card.Subtitle>
                                     <div className="d-flex flex-nowrap justify-content-between">
-                                        <div><strong>Latitude:</strong> {prediction.latitude}</div>
-                                        <div><strong>Longitude:</strong> {prediction.longitude}</div>
                                         <div><strong>Temperature:</strong> {prediction.temperature}°C</div>
                                         <div><strong>Wind Speed:</strong> {prediction.wind_speed} km/h</div>
                                         <div><strong>Wind Direction:</strong> {prediction.wind_dir}°</div>
@@ -96,15 +117,25 @@ const Demo = () => {
                                         <div><strong>Visibility:</strong> {prediction.visibility} km</div>
                                     </div>
                                     <div className="mt-3">
-                                        <strong>Report:</strong>
-                                        {renderFormattedMessage(prediction.message)}
+                                        <Button 
+                                            variant={getButtonVariant(prediction.prediction)}
+                                            onClick={() => toggleReport(prediction._id)}
+                                            style={{ textDecoration: "none" }}
+                                        >
+                                            {getButtonLabel(openReports[prediction._id])}
+                                        </Button>
+                                        {openReports[prediction._id] && (
+                                            <div className="mt-2">
+                                                <strong>Report:</strong>
+                                                {renderFormattedMessage(prediction.message)}
+                                            </div>
+                                        )}
                                     </div>
                                 </Card.Body>
                             </Card>
                         ))}
                     </Tab>
 
-                    {/* Tab for East Regions */}
                     <Tab eventKey="east" title="East Regions">
                         {filteredPredictions(eastRegions).map((prediction) => (
                             <Card className="mb-4" key={prediction._id}>
@@ -114,8 +145,6 @@ const Demo = () => {
                                         {prediction.date} {prediction.time}
                                     </Card.Subtitle>
                                     <div className="d-flex flex-nowrap justify-content-between">
-                                        <div><strong>Latitude:</strong> {prediction.latitude}</div>
-                                        <div><strong>Longitude:</strong> {prediction.longitude}</div>
                                         <div><strong>Temperature:</strong> {prediction.temperature}°C</div>
                                         <div><strong>Wind Speed:</strong> {prediction.wind_speed} km/h</div>
                                         <div><strong>Wind Direction:</strong> {prediction.wind_dir}°</div>
@@ -123,12 +152,35 @@ const Demo = () => {
                                         <div><strong>Visibility:</strong> {prediction.visibility} km</div>
                                     </div>
                                     <div className="mt-3">
-                                        <strong>Report:</strong>
-                                        {renderFormattedMessage(prediction.message)}
+                                        <Button 
+                                            variant={getButtonVariant(prediction.prediction)}
+                                            onClick={() => toggleReport(prediction._id)}
+                                            style={{ textDecoration: "none" }}
+                                        >
+                                            {getButtonLabel(openReports[prediction._id])}
+                                        </Button>
+                                        {openReports[prediction._id] && (
+                                            <div className="mt-2">
+                                                <strong>Report:</strong>
+                                                {renderFormattedMessage(prediction.message)}
+                                            </div>
+                                        )}
                                     </div>
                                 </Card.Body>
                             </Card>
                         ))}
+                    </Tab>
+                    <Tab eventKey="lolo" title="Map">
+                    <div style={{ width: '100%', height: '100vh' }}>
+                        <iframe
+                            key={reloadKey}
+                            src="map_colored_demo.html"
+                            title="Athens Map"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 'none' }}
+                        />
+                    </div>
                     </Tab>
                 </Tabs>
             )}
