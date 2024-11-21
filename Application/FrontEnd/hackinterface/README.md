@@ -1,78 +1,45 @@
-## Ξεχωριστά npm installs που πρέπει να γίνουν για να τρέξει
+# Interesting questions for the AI assistant
 
-npm install bootstrap
+* I am in Avlonas and the temperature is above 30 degrees. Where there any fires in Aigeirouses with similar temperatures? And if yes, when?
+* When was the highest temperature of June 22 in Avlonas recorded?
+* 
 
-npm install react-bootsrapt
 
-npm install react-markdown
+# Some facts about the dataset that the AI assistant uses:
 
-# Getting Started with Create React App
+* 917984 entries
+* Date range: 2014-01-01 up to 2024-10-31
+* 29 distinct locations
+* Acharnes, Afidnes, Agia Triada, Aigeirouses, Ano Liosia, Anthousa,
+  Aspropyrgos, Avlonas, Dioni, Ekali, Fyli, Grammatiko, Kallitechnoupoli,
+  Kato Soulion, Kifisia, Malakasa, Marathonas, Melissia, Moni Osiou Meletiou,
+  Nea Erythraia, Ntaou Penteli, Dhrafi, Parnis, Rapentosa, Rodopoli, Skourta,
+  Varybobi, Pevkofiton, Vrilissia
+* 1264 fire entries
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Necessary python installs for the backend
 
-## Available Scripts
++ pip install google-generativeai
++ pip install fastapi
++ pip install pydantic
++ pip install pymongo
++ pip install pandas
++ pip install numpy
++ pip install ipython
++ pip install xgboost
++ pip install pytz
++ pip install bson
++ pip install uvicorn
 
-In the project directory, you can run:
+**how to run:** In folder Application/BackEnd/fastapi-env/ run `uvicorn main:app --reload`
 
-### `npm start`
 
-Runs the app in the development mode.
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+# Necessary installs for the frontend
 
-The page will reload when you make changes.
-You may also see any lint errors in the console.
++ npm install bootstrap
 
-### `npm test`
++ npm install react-bootsrapt
 
-Launches the test runner in the interactive watch mode.
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
++ npm install react-markdown
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**how to run:** In folder Application/Frontend/hackinterface run `npm start`
