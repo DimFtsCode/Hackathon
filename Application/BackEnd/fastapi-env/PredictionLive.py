@@ -17,7 +17,7 @@ class PredictionLive:
         self.mountains_cycle = MountainsCycle(api_key)
         print("PredictionLive: Initialized and connected to MongoDB successfully.")
 
-        model_path = "C:/Users/ziziz/Documents/Hackathon 2024/Hackathon/DimiScripts/Models/xgboost_fire_model.json"        
+        model_path = "C:/Users/ziziz/Desktop/Hackathon/DimiScripts/Models/xgboost_fire_model.json"        
         # Φόρτωση του XGBoost μοντέλου
         self.model = xgb.Booster()
         self.model.load_model(model_path)

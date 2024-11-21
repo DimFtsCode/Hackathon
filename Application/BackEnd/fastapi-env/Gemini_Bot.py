@@ -144,25 +144,31 @@ def generate_text(user_message, model):
             f"They can ask you questions about weather conditions of specific locations and dates. "
             f"Create a pipeline that I can use with the 'aggregate' function of mongodb to extract the information that the user is asking for. The pipeline should return the whole documents that match the query."
             f"DO NOT include 'javascript' or 'python' before you answer"
-            f"If the query is irrelevant to the database purpose, answer with \"NONE\" "
+            f"If the query is irrelevant to the database purpose, answer with \"NO_DATA\" "
             f"USER QUERY: {user_message}\n"
             f"ANSWER:"
         )
 
-    pipeline = create_pipeline(model.generate_content(prompt))
+    raw_pipeline = model.generate_content(prompt)
+    print("Raw Pipeline: ",raw_pipeline.text)
+
+    if "NO_DATA" in raw_pipeline.text:
+        relevant_data = "NONE"
+    else:
+        print("Creating pipeline...")
+        pipeline = create_pipeline(model.generate_content(prompt))
+        result = weather_collection.aggregate(pipeline)
+        relevant_data = str([doc for doc in result])
+        
     
-    print("Mongo DB Pipeline: ",pipeline)
-    
-    result = weather_collection.aggregate(pipeline)
-    relevant_data = str([doc for doc in result])
-    
-    #print("relevant_data: ",relevant_data)
+    print("relevant_data: ",relevant_data)
     prompt = (
         f"You are a helpful assistant in a government website that helps citizens take precautions against wildfires. "
         f"A user can ask you what measures to take in case of a wildfire or to prevent one. "
         f"They can ask you questions about weather conditions of specific locations and dates. "
         f"If the query does not contain a location from the results, do not use the results, just provide the answer."
         f"If the query is irrelevant to the website's purpose, advise the user to ask a different question. "
+        f"If the relevant data is 'NONE', respond with a general but useful answer. "
         f"Provide the answer in a user-friendly markdown format. Do not create markdown tables."
         f"QUERY: {user_message}\n"
         f"RELEVANT DATA:\n{relevant_data}\n"
