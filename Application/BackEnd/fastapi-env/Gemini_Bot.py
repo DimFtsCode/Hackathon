@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import os
 import pandas as pd
-# from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 import google.generativeai as palm
 import re
 import ast
