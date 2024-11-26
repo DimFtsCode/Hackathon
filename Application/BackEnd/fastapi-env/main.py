@@ -34,7 +34,7 @@ app.add_middleware(
 app.include_router(weather_router)
 
 # Δημιουργία αντικειμένου PredictionLive
-api_key = "23ecd879f082445734dc2066bf821571"
+api_key = ""
 prediction_live = PredictionLive(mongo_uri, api_key)
 
 # Global μεταβλητή για το background task
