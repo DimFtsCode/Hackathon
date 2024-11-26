@@ -134,7 +134,7 @@ def generate_text(user_message, model):
 
 def initialize_llm():
     # Set your Gemini API key
-    os.environ['GOOGLE_API_KEY'] = 'AIzaSyCdF0puCdMW-s-9WmCNdSY4eLanHO9yJWQ'  # replace with your own key
+    os.environ['GOOGLE_API_KEY'] = ''  # replace with your own key
     palm.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = palm.GenerativeModel('gemini-1.5-flash')
     return model
