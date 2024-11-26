@@ -14,7 +14,7 @@ import pandas as pd
 app = FastAPI()
 
 # Σύνδεση με MongoDB
-mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
+mongo_uri = ""
 mongo_client = MongoClient(mongo_uri)
 db = mongo_client["Weather"]
 weather_collection = db["PredictionLive"]
