@@ -7,7 +7,7 @@ import ast
 import json
 
 # MongoDB configuration
-mongo_uri = "mongodb+srv://GiorgosZiakas:AdGiorgosMin24@cluster0.itaqk.mongodb.net/Weather"
+mongo_uri = ""
 mongo_client = MongoClient(mongo_uri)
 
 # Access the Weather database and RAG_DATA collection
